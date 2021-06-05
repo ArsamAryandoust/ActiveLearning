@@ -2,3 +2,7 @@ data/building\ imagery/padded
 data/building\ imagery/raw
 data/cluster\ imagery
 data/meta
+data/building-year\ profiles/minmax
+data/building-year\ profiles/random
+data/building-year\ profiles/original
+
