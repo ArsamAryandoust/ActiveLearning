@@ -1,4 +1,4 @@
-# Active machine learning for spatio-temporal predictions using feature embedding
+# Active machine learning for spatio-temporal predictions
 ---
 
 ## Docker 
@@ -34,7 +34,7 @@ For CPU computation, run:
 
 For GPU support, make sure you have the nvidia-container-toolkit installed, and run:
 
-`docker run -it --gpus 1 -v ~/ActiveLearning:/ActiveLearning -p 3333:1111 main_notebook`
+`docker run -it --gpus all -v ~/ActiveLearning:/ActiveLearning -p 3333:1111 main_notebook`
 
 Next, open the link showing up in your terminal (e.g. http://127.0.0.1:3333/?token=38b8cccba94e7360d52d2935df065a99c567e2d2b203d558) to run Jupyter notebook sessions inside the docker container from your browser.
 
@@ -43,7 +43,7 @@ Next, open the link showing up in your terminal (e.g. http://127.0.0.1:3333/?tok
 `docker run -it -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning -p 3333:1111 main_notebook`
 
 
-`docker run -it --gpus 1 -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning -p 3333:1111 main_notebook`
+`docker run -it --gpus all -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning -p 3333:1111 main_notebook`
 
 
 
