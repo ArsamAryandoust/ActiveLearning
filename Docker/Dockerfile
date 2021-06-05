@@ -13,7 +13,7 @@ RUN pip install pandas
 RUN pip install matplotlib
 RUN pip install pydot
 
-WORKDIR /EmbeddingEntropy
+WORKDIR /ActiveLearning
 
-CMD python hypothesistest.py
+CMD python src/main.py
 
