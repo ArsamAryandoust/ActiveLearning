@@ -5,45 +5,45 @@
 
 Download this repository to your home directory. With your current working directory being this repository, run:
 
-`docker build -t hypothesistest Docker`
+`docker build -t main Docker`
 
 For CPU computation, run:
 
-`docker run -v ~/EmbeddingEntropy:/EmbeddingEntropy hypothesistest`
+`docker run -v ~/ActiveLearning:/ActiveLearning main`
 
 For GPU support, make sure you have the nvidia-container-toolkit installed, then run:
 
-`docker run --gpus 1 -v ~/EmbeddingEntropy:/EmbeddingEntropy hypothesistest`
+`docker run --gpus all -v ~/ActiveLearning:/ActiveLearning main`
 
-**Note:** If you download this repository to a location other than your home directory, make sure it is at a sub-directory of your home directory and replace all ~/EmbeddingEntropy with ~/path/to/subdirectory/EmbeddingEntropy in the commands, i.e.
+**Note:** If you download this repository to a location other than your home directory, make sure it is at a sub-directory of your home directory and replace all ~/ActiveLearning with ~/path/to/subdirectory/ActiveLearning in the commands, i.e.
 
-`docker run -v ~/path/to/subdirectory/EmbeddingEntropy:/EmbeddingEntropy hypothesistest`
+`docker run -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning main`
 
 
-`docker run --gpus 1 -v ~/path/to/subdirectory/EmbeddingEntropy:/EmbeddingEntropy hypothesistest`
+`docker run --gpus 1 -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning main`
 
 #### Jupyter notebooks inside docker
 
 For running jupyter notebook sessions inside a docker container, run:
 
-`docker build -t docker_notebook DockerNotebook`
+`docker build -t main_notebook DockerNotebook`
 
 For CPU computation, run:
 
-`docker run -it -v ~/EmbeddingEntropy:/EmbeddingEntropy -p 3333:3333 docker_notebook`
+`docker run -it -v ~/ActiveLearning:/ActiveLearning -p 3333:1111 main_notebook`
 
 For GPU support, make sure you have the nvidia-container-toolkit installed, and run:
 
-`docker run -it --gpus 1 -v ~/EmbeddingEntropy:/EmbeddingEntropy -p 3333:3333 docker_notebook`
+`docker run -it --gpus 1 -v ~/ActiveLearning:/ActiveLearning -p 3333:1111 main_notebook`
 
 Next, open the link showing up in your terminal (e.g. http://127.0.0.1:3333/?token=38b8cccba94e7360d52d2935df065a99c567e2d2b203d558) to run Jupyter notebook sessions inside the docker container from your browser.
 
-**Note:** If you download this repository to a location other than your home directory, make sure it is at a sub-directory of your home directory and replace all ~/EmbeddingEntropy with ~/path/to/subdirectory/EmbeddingEntropy in the commands, i.e.
+**Note:** If you download this repository to a location other than your home directory, make sure it is at a sub-directory of your home directory and replace all ~/ActiveLearning with ~/path/to/subdirectory/ActiveLearning in the commands, i.e.
 
-`docker run -it -v ~/path/to/subdirectory/EmbeddingEntropy:/EmbeddingEntropy -p 3333:3333 docker_notebook`
+`docker run -it -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning -p 3333:1111 main_notebook`
 
 
-`docker run -it --gpus 1 -v ~/path/to/subdirectory/EmbeddingEntropy:/EmbeddingEntropy -p 3333:3333 docker_notebook`
+`docker run -it --gpus 1 -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning -p 3333:1111 main_notebook`
 
 
 
