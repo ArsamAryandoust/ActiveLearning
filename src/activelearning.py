@@ -628,10 +628,6 @@ def feature_embedding_AL(
         # compute the number of new data points queried in this iteration
         n_new_data = len(picked_cand_index_set) - n_used_cand_data_total
         
-        #print('\n available_index_set_update: \n\n', available_index_set_update)
-        #print('\n batch_index_list: \n\n', set(batch_index_list))
-        #print('\n picked_cand_index_list: \n\n', set(picked_cand_index_list))
-        
 
         ### Create new training batch ###
         
@@ -1390,7 +1386,7 @@ def vis_train_and_val(
                 baseline_loss,
                 color='r',
                 linestyle='--',
-                label='RF',
+                label='RF baseline',
             )
             
             ### Plot PL results once per method for benchmark ###

@@ -13,7 +13,7 @@ RUN pip install pandas
 RUN pip install matplotlib
 RUN pip install pydot
 
-WORKDIR /ActiveLearning
+WORKDIR /ActiveLearning/src
 
-CMD python src/main.py
+CMD python main.py
 

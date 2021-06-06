@@ -345,7 +345,7 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
         optimizer, 
         mean_loss, 
         loss_function,
-        'random', 
+        'PL', 
         silent=False
     )
     
