@@ -47,25 +47,25 @@ class HyperParameter:
     # Decide which prediction types to evaluate. Choose from "spatial",
     # "temporal", "spatio-temporal"
     PRED_LIST_ACT_LRN = [
-        "spatio-temporal"
+        'spatio-temporal'
     ]
 
     # Decide which methods to evaluate. Choose from "cluster-rnd", 
     # "cluster-far", "cluster-close", "cluster-avg"
     QUERY_VARIANTS_ACT_LRN = [
-        "cluster-rnd", 
-        #"cluster-close", 
-        "cluster-far", 
-        "cluster-avg"
+        'rnd d_c', 
+        #'min d_c', 
+        'max d_c', 
+        'avg d_c'
     ]
 
     # Choose AL variables you want to test. Choose from "X_t", "X_s1", "X_st", 
     # "X_joint", "X_(t,s)", "Y_(t,s)"
     QUERY_VARIABLES_ACT_LRN = [
-        "X_st", 
-        "X_joint", 
-        "X_(t,s)", 
-        "Y_(t,s)"
+        'X_st', 
+        'X_joint', 
+        'X_(t,s)', 
+        'Y_(t,s)'
     ]
 
     # Decide how many iterations to go at max for batch AL
@@ -105,7 +105,7 @@ class HyperParameter:
 
     # Decide how to formulate the problem. Choose from
     # "regression", "classification"
-    PROBLEM_TYPE = "regression"
+    PROBLEM_TYPE = 'regression'
     
     # Choose from: mean_squared_error, mean_absolute_error,
     #  mean_squared_logarithmic_error, huber, log_cosh
@@ -120,12 +120,12 @@ class HyperParameter:
 
     # Decide which labels to consider. Choose from "random", "public", 
     # "minmax", "original"
-    LABELS = "original"
+    LABELS = 'original'
 
     # Decide for which years you want to consider electric load profiles.
     # Choose from "2014".
     PROFILE_YEARS = [
-        "2014"
+        '2014'
     ]
 
     # Decide how many building-year profiles you want to
@@ -178,7 +178,7 @@ class HyperParameter:
 
     # Decide which activation function to use on last encoding layer.
     # Choose from None, "relu", "tanh", "selu", "elu", "exponential".
-    ENCODING_ACTIVATION = "relu"
+    ENCODING_ACTIVATION = 'relu'
 
     # Decide how many layers you want to use after encoders.
     # This is your network depth.
@@ -191,73 +191,75 @@ class HyperParameter:
 
     # Decide which layers to use for X_st inputs. Choose one
     # from "ANN", "CNN", "LSTM".
-    LAYER_TYPE_X_ST = "CNN"
+    LAYER_TYPE_X_ST = 'CNN'
 
     # Decide which activation function to use in each layer. Choose
     # from None, "relu", "tanh", "selu", "elu", "exponential".
-    DENSE_ACTIVATION = "relu"
-    CNN_ACTIVATION = "relu"
-    LSTM_ACTIVATION = "tanh"
+    DENSE_ACTIVATION = 'relu'
+    CNN_ACTIVATION = 'relu'
+    LSTM_ACTIVATION = 'tanh'
 
     # Decide how to initiliaze weights for Conv1D, Conv2D, LSTM and
     # Dense layers. Choose from "glorot_uniform", "glorot_normal", 
     # "random_normal", "random_uniform", "truncated_normal"
-    INITIALIZATION_METHOD = "glorot_normal"
-    INITIALIZATION_METHOD_LSTM = "orthogonal"
+    INITIALIZATION_METHOD = 'glorot_normal'
+    INITIALIZATION_METHOD_LSTM = 'orthogonal'
 
     # set on calling __init__
     INITIALIZATION = None
     LSTM_RECURENT_INITIALIZATION = None
 
-    # decide whether or not to use batch normalization on each layer in your NN. Choose 
-    # between True or False
+    # decide whether or not to use batch normalization on each layer in your NN. 
+    # Choose between True or False
     BATCH_NORMALIZATION = False
 
     # decide how to regularize weights. Choose from None, 'l1', 'l2', 'l1_l2'
-    REGULARIZER = "l1_l2"
+    REGULARIZER = 'l1_l2'
 
 
     ### 4. Feature engineering ###
 
-    # decide which time stamp information to consider. Choose from: '15min', 'hour', 'day', 
-    # 'month', 'year'
+    # decide which time stamp information to consider. Choose from: '15min',
+    # 'hour', 'day', 'month', 'year'
     TIMESTAMP_DATA = [
-        "15min", 
-        "hour", 
-        "day", 
-        "month"
+        '15min', 
+        'hour', 
+        'day', 
+        'month'
     ]
 
-    # decide how to encode time stamp data. Choose one of 'ORD', 'ORD-1D' or 'OHE'
-    TIME_ENCODING = "ORD"
+    # decide how to encode time stamp data. Choose one of 'ORD', 'ORD-1D'
+    # or 'OHE'
+    TIME_ENCODING = 'ORD'
 
-    # decide how to treat aerial imagery. Choose one from 'average', 'histogram', 'image'
-    SPATIAL_FEATURES = "histogram"
+    # decide how to treat aerial imagery. Choose one from 'average',
+    # 'histogram', 'image'
+    SPATIAL_FEATURES = 'histogram'
 
-    # set the number of histogram bins that you want to use. Applied if SPATIAL_FEATURES =
-    # 'histogram'
+    # set the number of histogram bins that you want to use. Applied if 
+    # SPATIAL_FEATURES = 'histogram'
     HISTO_BINS = 100
 
     # decide whether you want to consider underlying RGB images in grey-scale
     GREY_SCALE = False
 
-    # decide whether and how to downscale spatial imagery data. Choose any integer to the 
-    # power of two or 'None'
+    # decide whether and how to downscale spatial imagery data. Choose any 
+    # integer to the power of two or 'None'
     DOWN_SCALE_BUILDING_IMAGES = None
 
-    # decive which meteo data types to consider. Choose from "air_density", "cloud_cover", 
-    # "precipitation", "radiation_surface", "radiation_toa", "snow_mass", "snowfall", 
-    # "temperature", "wind_speed"
+    # decive which meteo data types to consider. Choose from "air_density", 
+    # "cloud_cover",  "precipitation", "radiation_surface", "radiation_toa", 
+    # "snow_mass", "snowfall", "temperature", "wind_speed"
     METEO_TYPES = [
-        "air_density",
-        "cloud_cover",
-        "precipitation",
-        "radiation_surface",
-        "radiation_toa",
-        "snow_mass",
-        "snowfall",
-        "temperature",
-        "wind_speed",
+        'air_density',
+        'cloud_cover',
+        'precipitation',
+        'radiation_surface',
+        'radiation_toa',
+        'snow_mass',
+        'snowfall',
+        'temperature',
+        'wind_speed',
     ]
 
     # choose past time window for the meteo data. Resolution is hourly.
@@ -266,7 +268,7 @@ class HyperParameter:
     # decide whether or not to normalize features
     NORMALIZATION = True
 
-    # decide whether or not to standardize features to zero mean and unit variance.
+    # decide whether to standardize features to zero mean and unit variance.
     STANDARDIZATION = True
 
 
@@ -280,42 +282,36 @@ class HyperParameter:
         # check if chosen hyper parameters are valid and correct if necessary
         if self.PUBLIC_ACCESS:
 
-            if self.LABELS != "public":
+            if self.LABELS != 'public':
 
                 print(
-                    "\n You run in public access mode, and only have access", 
-                    "to public data. HYPER.LABELS is set to 'public'."
+                    '\n You run in public access mode, and only have access', 
+                    'to public data. HYPER.LABELS is set to "public".'
                 )
 
-                self.LABELS = "public"
+                self.LABELS = 'public'
 
-            if self.SPATIAL_FEATURES == "image":
+            if self.SPATIAL_FEATURES == 'image':
 
                 def ask_for_spatial_features_input(self):
 
                     response = input(
-                        "\n You run in public access mode, and only "
-                        + "have access to image histograms. Please enter "
-                        + "h to set SPATIAL_FEATURES='histogram' or "
-                        + "a for SPATIAL_FEATURES='average':"
+                        '\n You run in public access mode, and only '
+                        + 'have access to image histograms. Please enter '
+                        + 'h to set SPATIAL_FEATURES="histogram" or '
+                        + 'a for SPATIAL_FEATURES="average":'
                     )
                     
-                    if response == "h":
-                    
-                        self.SPATIAL_FEATURES = "histogram"
-                        
+                    if response == 'h':
+                        self.SPATIAL_FEATURES = 'histogram'
                         return True
                         
-                    elif response == "a":
-                    
-                        self.SPATIAL_FEATURES = "average"
-                        
+                    elif response == 'a':
+                        self.SPATIAL_FEATURES = 'average'
                         return True
                         
                     else:
-                    
-                        print("\n Input not recognized. Please try again.")
-                        
+                        print('\n Input not recognized. Please try again.')
                         return False
                  
                 a = 0
@@ -331,12 +327,12 @@ class HyperParameter:
             if self.HISTO_BINS != 100:
 
                 print(
-                    "\n\n You chose HISTO_BINS={}. Note that".format(
+                    '\n\n You chose HISTO_BINS={}. Note that'.format(
                         self.HISTO_BINS
                     ),
-                    "you run in public access mode and only have access to", 
-                    "image histograms that are",
-                    "calculated with HISTO_BINS=100. \n\n"
+                    'you run in public access mode and only have access to', 
+                    'image histograms that are',
+                    'calculated with HISTO_BINS=100. \n\n'
                 )
 
                 self.HISTO_BINS = 100
@@ -346,12 +342,12 @@ class HyperParameter:
             if self.DOWN_SCALE_BUILDING_IMAGES is not None:
 
                 print(
-                    "\n\n You chose DOWN_SCALE_BUILDING_IMAGES={}".format(
+                    '\n\n You chose DOWN_SCALE_BUILDING_IMAGES={}'.format(
                         self.DOWN_SCALE_BUILDING_IMAGES
                     ),
-                    "Note that you run in public access mode and only",
-                    "have access to image data that is calculated without",
-                    "any down scaling. \n\n"
+                    'Note that you run in public access mode and only',
+                    'have access to image data that is calculated without',
+                    'any down scaling. \n\n'
                 )
 
                 self.DOWN_SCALE_BUILDING_IMAGES = None
@@ -368,27 +364,22 @@ class HyperParameter:
             
 
         if self.METRIC_DISTANCES[0] == rbf_kernel:
-        
             self.DISTANCE_METRIC_ACT_LRN = 'Gaussian'
             
         elif self.METRIC_DISTANCES[0] == laplacian_kernel:
-        
             self.DISTANCE_METRIC_ACT_LRN = 'Laplacian'
             
         elif self.METRIC_DISTANCES[0] == cosine_similarity:
-        
             self.DISTANCE_METRIC_ACT_LRN = 'Cosine similarity'
 
         if self.METHOD_CLUSTERS[0] == KMeans:
-        
-            self.CLUSTER_METHOD_ACT_LRN = "KMeans"
+            self.CLUSTER_METHOD_ACT_LRN = 'KMeans'
 
         else:
-            
             print(
-                "If you don't own the private data, your experiment will not",
-                "succeed in private access mode! Change hyper parameter to",
-                "PUBLIC_ACCESS=True"
+                'If you do not own the private data, your experiment will not',
+                'succeed in private access mode! Change hyper parameter to',
+                'PUBLIC_ACCESS=True'
             )
         
 
@@ -409,4 +400,4 @@ class HyperParameter:
 
         for attr, value in self.__dict__.items():
         
-            print(attr, ":", value)
+            print(attr, ':', value)
