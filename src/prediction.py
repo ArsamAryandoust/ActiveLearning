@@ -29,20 +29,19 @@ class EncodersAndPredictor:
 
 def initialize_optimizer(HYPER):
     
-    """ Sets the loss objective, epending on whether we solve the prediction task as a 
-        regression or a classification problem. Note: the distinction between 'loss_function' 
-        and 'loss_object' is because of classification loss. We still want to evaluate the 
-        predictions with a regression loss if we transform our regression to a classification
-        problem and use the respective cross entropy categorical loss.
+    """ Sets the loss objective, epending on whether we solve the prediction 
+    task as a regression or a classification problem. Note: the distinction 
+    between 'loss_function' and 'loss_object' is because of classification loss. 
+    We still want to evaluate the predictions with a regression loss if we 
+    transform our regression to a classification problem and use the respective 
+    cross entropy categorical loss.
     """
     
     # choose a loss function
     if HYPER.PROBLEM_TYPE == 'regression':
-    
         loss_object = HYPER.REGRESSION_LOSS[0]
         
     elif HYPER.PROBLEM_TYPE == 'classification':
-    
         loss_object = HYPER.CLASSIFICATION_LOSS[0]
         
     # set an optimization algorithm
@@ -87,6 +86,7 @@ def create_and_train_RF(HYPER, train_data):
             ),
             train_data.Y,
         )
+        
     else:
         RF_regr.fit(
             np.concatenate(
@@ -139,6 +139,7 @@ def predict_with_RF(HYPER, RF_regr, dataset):
                 axis=1,
             )
         )
+        
     else:
         predictions = RF_regr.predict(
             np.concatenate(
@@ -174,31 +175,26 @@ def save_prediction_model(HYPER, raw_data, model, model_name):
     if HYPER.SAVE_ACT_LRN_MODELS:
     
         for pred_type in HYPER.PRED_LIST_ACT_LRN:
-        
             saving_path = raw_data.path_to_AL_models + pred_type + '/'
             
             if not os.path.exists(saving_path):
-                
                 os.mkdir(saving_path)
         
             saving_path += model_name + '.h5'
-            
             model.save(saving_path)
             
             
 def save_encoder_and_predictor_weights(HYPER, raw_data, models):
 
-    """ Saves the encoder and the prediction model weights of the EncodersAndPredictor 
-        object that is passed, in a path that is contained in the RawData object under 
-        attribute path_to_encoder_weights.
+    """ Saves the encoder and the prediction model weights of the 
+    EncodersAndPredictor object that is passed, in a path that is contained in 
+    the RawData object under attribute path_to_encoder_weights.
     """
     
     for pred_type in HYPER.PRED_LIST_ACT_LRN:
-    
         saving_path = raw_data.path_to_encoder_weights + pred_type + '/'
         
         if not os.path.exists(saving_path):
-            
             os.mkdir(saving_path)
     
         # iterate simultaneously over models and their names
@@ -243,14 +239,13 @@ def plot_true_vs_prediction(figtitle, test_data_Y, predictions):
     plot_rows = 3
     plot_clos = 3
 
-    # create a matplotlib.pyplot.subplots figure in desired size and arangement of subplots
+    # create a matplotlib.pyplot.subplots figure
     fig, ax = plt.subplots(plot_rows, plot_clos, figsize=(16, 16))
 
     # set the figtitle
     fig.suptitle(figtitle, fontsize=16)
 
-    # pick at random a set of integers in the range of zero to number of testing points for 
-    # visualization
+    # pick at random a set of integers for visualization
     data_indices = np.random.randint(
         0, 
         len(test_data_Y), 
@@ -331,6 +326,7 @@ def plot_RF_feature_importance(
     if HYPER.SPATIAL_FEATURES == "image":
         feature_score_list.append(RF_feature_importance[0].tolist())
         RF_feature_importance = RF_feature_importance[1:]
+        
     elif HYPER.SPATIAL_FEATURES == "average":
         feature_score_list.append(
             np.average(
@@ -338,6 +334,7 @@ def plot_RF_feature_importance(
                 )
         )
         RF_feature_importance = RF_feature_importance[raw_data.n_channels:]
+        
     elif HYPER.SPATIAL_FEATURES == "histogram":
         feature_score_list.append(
             np.average(
@@ -349,6 +346,7 @@ def plot_RF_feature_importance(
     # add spatio-temporal features
     feature_name_list.append("spatio-temporal")
     feature_score_list.append(np.average(RF_feature_importance))
+    
     for name in HYPER.METEO_TYPES:
         feature_name_list.append(name)
         feature_score_list.append(
@@ -381,7 +379,6 @@ def build_prediction_model(
     """
 
     if not silent:
-    
         # tell us what we do
         print("Building prediction model")
 
@@ -390,11 +387,9 @@ def build_prediction_model(
     Y_example = train_data.Y[0]
     
     if HYPER.SPATIAL_FEATURES == "image":
-    
         X_s1_example = raw_data.building_imagery_data_list[0]
         
     else:
-    
         X_s1_example = train_data.X_s1[0]
 
 
@@ -410,11 +405,9 @@ def build_prediction_model(
     ### Encode X_t ###
     
     if HYPER.ENCODER_LAYERS == 0:
-
         X_t = tf.keras.layers.Flatten()(X_t_input)
 
     else:
-
         X_t = tf.keras.layers.Dense(
             HYPER.NODES_PER_LAYER_DENSE,
             activation=HYPER.DENSE_ACTIVATION,
@@ -423,11 +416,9 @@ def build_prediction_model(
         )(X_t_input)
         
         if HYPER.BATCH_NORMALIZATION:
-        
             X_t = tf.keras.layers.BatchNormalization()(X_t)
             
         for i in range(HYPER.ENCODER_LAYERS - 1):
-        
             X_t = tf.keras.layers.Dense(
                 HYPER.NODES_PER_LAYER_DENSE,
                 activation=HYPER.DENSE_ACTIVATION,
@@ -436,7 +427,6 @@ def build_prediction_model(
             )(X_t)
             
             if HYPER.BATCH_NORMALIZATION:
-            
                 X_t = tf.keras.layers.BatchNormalization()(X_t)
                 
         X_t = tf.keras.layers.Flatten()(X_t)
@@ -449,16 +439,13 @@ def build_prediction_model(
     )(X_t)
     
     if HYPER.BATCH_NORMALIZATION:
-    
         X_t = tf.keras.layers.BatchNormalization()(X_t)
 
 
     ### Encode X_s1 and X_s2 ###
     
     if HYPER.SPATIAL_FEATURES == "image":
-
         if HYPER.ENCODER_LAYERS == 0:
-
             X_s1 = tf.keras.layers.Conv2D(
                 HYPER.FILTERS_PER_LAYER_CNN,
                 (2, 2),
@@ -468,10 +455,9 @@ def build_prediction_model(
             )(X_s1_input)
             
             if HYPER.BATCH_NORMALIZATION:
-            
                 X_s1 = tf.keras.layers.BatchNormalization()(X_s1)
+                
         else:
-
             X_s1 = tf.keras.layers.Conv2D(
                 HYPER.FILTERS_PER_LAYER_CNN,
                 (2, 2),
@@ -481,7 +467,6 @@ def build_prediction_model(
             )(X_s1_input)
             
             if HYPER.BATCH_NORMALIZATION:
-            
                 X_s1 = tf.keras.layers.BatchNormalization()(X_s1)
                 
             X_s1 = tf.keras.layers.MaxPooling2D((2, 2))(X_s1)
@@ -496,13 +481,11 @@ def build_prediction_model(
                 )(X_s1)
                 
                 if HYPER.BATCH_NORMALIZATION:
-                
                     X_s1 = tf.keras.layers.BatchNormalization()(X_s1)
                     
                 X_s1 = tf.keras.layers.MaxPooling2D((2, 2))(X_s1)
 
         X_s1 = tf.keras.layers.Flatten()(X_s1)
-        
         X_s1 = tf.keras.layers.Dense(
             HYPER.ENCODING_NODES_X_s,
             activation=HYPER.ENCODING_ACTIVATION,
@@ -511,17 +494,14 @@ def build_prediction_model(
         )(X_s1)
         
         if HYPER.BATCH_NORMALIZATION:
-        
             X_s1 = tf.keras.layers.BatchNormalization()(X_s1)
 
     else:
 
         if HYPER.ENCODER_LAYERS == 0:
-
             X_s1 = tf.keras.layers.Flatten()(X_s1_input)
 
         else:
-
             X_s1 = tf.keras.layers.Dense(
                 HYPER.NODES_PER_LAYER_DENSE,
                 activation=HYPER.DENSE_ACTIVATION,
@@ -530,11 +510,9 @@ def build_prediction_model(
             )(X_s1_input)
             
             if HYPER.BATCH_NORMALIZATION:
-            
                 X_s1 = tf.keras.layers.BatchNormalization()(X_s1)
                 
             for i in range(HYPER.ENCODER_LAYERS - 1):
-            
                 X_s1 = tf.keras.layers.Dense(
                     HYPER.NODES_PER_LAYER_DENSE,
                     activation=HYPER.DENSE_ACTIVATION,
@@ -543,7 +521,6 @@ def build_prediction_model(
                 )(X_s1)
                 
                 if HYPER.BATCH_NORMALIZATION:
-                
                     X_s1 = tf.keras.layers.BatchNormalization()(X_s1)
                     
             X_s1 = tf.keras.layers.Flatten()(X_s1)
@@ -556,20 +533,16 @@ def build_prediction_model(
         )(X_s1)
         
         if HYPER.BATCH_NORMALIZATION:
-        
             X_s1 = tf.keras.layers.BatchNormalization()(X_s1)
 
 
     ### Encode X_st ###
     
     if HYPER.ENCODER_LAYERS == 0:
-
         X_st = tf.keras.layers.Flatten()(X_st_input)
 
     else:
-
         if HYPER.LAYER_TYPE_X_ST == "ANN":
-
             X_st = tf.keras.layers.Dense(
                 HYPER.NODES_PER_LAYER_DENSE,
                 activation=HYPER.DENSE_ACTIVATION,
@@ -578,11 +551,9 @@ def build_prediction_model(
             )(X_st_input)
             
             if HYPER.BATCH_NORMALIZATION:
-            
                 X_st = tf.keras.layers.BatchNormalization()(X_st)
                 
             for i in range(HYPER.ENCODER_LAYERS - 1):
-            
                 X_st = tf.keras.layers.Dense(
                     HYPER.NODES_PER_LAYER_DENSE,
                     activation=HYPER.DENSE_ACTIVATION,
@@ -591,11 +562,9 @@ def build_prediction_model(
                 )(X_st)
                 
                 if HYPER.BATCH_NORMALIZATION:
-                
                     X_st = tf.keras.layers.BatchNormalization()(X_st)
 
         elif HYPER.LAYER_TYPE_X_ST == "CNN":
-
             X_st = tf.keras.layers.Conv1D(
                 HYPER.FILTERS_PER_LAYER_CNN,
                 2,
@@ -605,11 +574,9 @@ def build_prediction_model(
             )(X_st_input)
             
             if HYPER.BATCH_NORMALIZATION:
-            
                 X_st = tf.keras.layers.BatchNormalization()(X_st)
                 
             for i in range(HYPER.ENCODER_LAYERS - 1):
-            
                 X_st = tf.keras.layers.Conv1D(
                     HYPER.FILTERS_PER_LAYER_CNN,
                     2,
@@ -619,13 +586,10 @@ def build_prediction_model(
                 )(X_st)
                 
                 if HYPER.BATCH_NORMALIZATION:
-                
                     X_st = tf.keras.layers.BatchNormalization()(X_st)
 
         elif HYPER.LAYER_TYPE_X_ST == "LSTM":
-
             if HYPER.ENCODER_LAYERS == 1:
-            
                 X_st = tf.keras.layers.LSTM(
                     HYPER.STATES_PER_LAYER_LSTM,
                     activation=HYPER.LSTM_ACTIVATION,
@@ -634,10 +598,9 @@ def build_prediction_model(
                 )(X_st_input)
                 
                 if HYPER.BATCH_NORMALIZATION:
-                
                     X_st = tf.keras.layers.BatchNormalization()(X_st)
+                    
             else:
-            
                 X_st = tf.keras.layers.LSTM(
                     HYPER.STATES_PER_LAYER_LSTM,
                     return_sequences=True,
@@ -647,11 +610,9 @@ def build_prediction_model(
                 )(X_st_input)
                 
                 if HYPER.BATCH_NORMALIZATION:
-                
                     X_st = tf.keras.layers.BatchNormalization()(X_st)
                     
                 for i in range(HYPER.ENCODER_LAYERS - 2):
-                
                     X_st = tf.keras.layers.LSTM(
                         HYPER.STATES_PER_LAYER_LSTM,
                         return_sequences=True,
@@ -661,7 +622,6 @@ def build_prediction_model(
                     )(X_st)
                     
                     if HYPER.BATCH_NORMALIZATION:
-                    
                         X_st = tf.keras.layers.BatchNormalization()(X_st)
                         
                 X_st = tf.keras.layers.LSTM(
@@ -672,7 +632,6 @@ def build_prediction_model(
                 )(X_st)
                 
                 if HYPER.BATCH_NORMALIZATION:
-                
                     X_st = tf.keras.layers.BatchNormalization()(X_st)
 
         X_st = tf.keras.layers.Flatten()(X_st)
@@ -685,7 +644,6 @@ def build_prediction_model(
     )(X_st)
     
     if HYPER.BATCH_NORMALIZATION:
-    
         X_st = tf.keras.layers.BatchNormalization()(X_st)
 
 
@@ -697,32 +655,27 @@ def build_prediction_model(
 
 
     ### create X_t encoder ###
-    
     X_t_encoder = tf.keras.Model(inputs=X_t_input, outputs=X_t)
     input_list.append(X_t_input)
     joining_list.append(X_t)
 
 
     ### create X_s1 encoder ###
-    
     X_s1_encoder = tf.keras.Model(inputs=X_s1_input, outputs=X_s1)
     input_list.append(X_s1_input)
     joining_list.append(X_s1)
 
 
     ### create X_st encoder ###
-    
     X_st_encoder = tf.keras.Model(inputs=X_st_input, outputs=X_st)
     input_list.append(X_st_input)
     joining_list.append(X_st)
 
 
     ### create joint encoder ###
-    
     joining_layer = tf.keras.layers.concatenate(joining_list)
     
     for i in range(HYPER.ENCODER_LAYERS):
-    
         joining_layer = tf.keras.layers.Dense(
             HYPER.NODES_PER_LAYER_DENSE,
             activation=HYPER.DENSE_ACTIVATION,
@@ -731,7 +684,6 @@ def build_prediction_model(
         )(joining_layer)
         
         if HYPER.BATCH_NORMALIZATION:
-        
             joining_layer = tf.keras.layers.BatchNormalization()(joining_layer)
 
     joining_layer = tf.keras.layers.Dense(
@@ -742,7 +694,6 @@ def build_prediction_model(
     )(joining_layer)
     
     if HYPER.BATCH_NORMALIZATION:
-    
         joining_layer = tf.keras.layers.BatchNormalization()(joining_layer)
         
     X_joint_encoder = tf.keras.Model(inputs=input_list, outputs=joining_layer)
@@ -751,7 +702,6 @@ def build_prediction_model(
     ### Create total prediction model ###
 
     for i in range(HYPER.NETWORK_LAYERS):
-    
         joining_layer = tf.keras.layers.Dense(
             HYPER.NODES_PER_LAYER_DENSE,
             activation=HYPER.DENSE_ACTIVATION,
@@ -760,11 +710,9 @@ def build_prediction_model(
         )(joining_layer)
         
         if HYPER.BATCH_NORMALIZATION:
-        
             joining_layer = tf.keras.layers.BatchNormalization()(joining_layer)
 
     if HYPER.PROBLEM_TYPE == "regression":
-    
         consumption_output = tf.keras.layers.Dense(
             len(Y_example),
             activation="softplus",
@@ -772,7 +720,6 @@ def build_prediction_model(
         )(joining_layer)
         
     elif HYPER.PROBLEM_TYPE == "classification":
-    
         consumption_output = tf.keras.layers.Dense(
             len(Y_example) * HYPER.REGRESSION_CLASSES,
             kernel_initializer=HYPER.INITIALIZATION,
@@ -809,11 +756,8 @@ def build_prediction_model(
     if plot:
 
         for model_name, tf_model in models.__dict__.items():
-        
             print("Computation graph for " + model_name + ":")
-            
             model_name = 'images/' + model_name + ".png"
-
             display(
                 tf.keras.utils.plot_model(
                     tf_model, 
@@ -842,17 +786,14 @@ def train_model(
     plot=False,
 ):
 
-    """ Trains and validates the passed prediction model with the passed train_data and 
-	    val_data datasets. Returns the train loss and validation loss histories as numpy 
-	    arrays.
+    """ Trains and validates the passed prediction model with the passed 
+    train_data and val_data datasets. Returns the train loss and validation loss 
+    histories as numpy arrays.
     """
 
     if silent:
-    
         verbose = 0
-        
     else:
-    
         verbose = 1
         
 
@@ -862,8 +803,8 @@ def train_model(
 
     if HYPER.PROBLEM_TYPE == "regression":
 
-        # keep training and validation labels. Create copies so as to not change original 
-	    # classes.
+        # keep training and validation labels. Create copies so as to not change 
+	      # original classes.
         train_data.Y_copy = train_data.Y
         val_data.Y_copy = val_data.Y
 

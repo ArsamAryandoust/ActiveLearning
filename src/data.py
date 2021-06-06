@@ -22,162 +22,134 @@ class RawData:
     
         """ Initializes paths and miscellaneous other values """
     
-        # determines how many exemplar subplots to show for imported electric load profiles
+        # provide the path to where data is stored
+        path_to_data = '../data/'
+        
+        # determines how many exemplar subplots to show for load profiles
         self.n_subplots = 10
-
 
         # set the range of the histogram bins and the total number of bins.
         self.histo_range = (0, 1)
         
-        
         # set the number of channels
         if HYPER.GREY_SCALE:
-        
             self.n_channels = 1
-            
         else:
-        
             self.n_channels = 3
-
 
         # set the path to electric load profile data
         self.path_to_building_year_profile_folder = (
-            "data/building-year profiles/" 
+            path_to_data  
+            + 'building-year profiles/' 
             + HYPER.LABELS 
             + '/'
         )
         
-        
         # set the path to meteo data
-        self.path_to_meteo_data_folder = "data/meteo data/"
-        
+        self.path_to_meteo_data_folder = path_to_data + 'meteo data/'
         
         # set the path to aerial imagery data
-        self.path_to_aerial_imagery_folder = "data/building imagery/"
+        self.path_to_aerial_imagery_folder = path_to_data + 'building imagery/'
         
         if HYPER.PUBLIC_ACCESS:
-        
             if HYPER.SPATIAL_FEATURES == 'histogram':
-            
                 self.path_to_aerial_imagery_folder = (
                     self.path_to_aerial_imagery_folder 
-                    + "histogram/"
+                    + 'histogram/'
                 )
                 
             elif HYPER.SPATIAL_FEATURES == 'average':
-            
                 self.path_to_aerial_imagery_folder = (
                     self.path_to_aerial_imagery_folder 
-                    + "average/"
+                    + 'average/'
                 )
                 
             if HYPER.GREY_SCALE:
-            
                 self.path_to_aerial_imagery_folder = (
                     self.path_to_aerial_imagery_folder 
-                    + "greyscale/"
+                    + 'greyscale/'
                 )
                 
             else:
-            
                 self.path_to_aerial_imagery_folder = (
                     self.path_to_aerial_imagery_folder 
-                    + "rgb/"
+                    + 'rgb/'
                 )
             
         else:
-            
             self.path_to_aerial_imagery_folder = (
                 self.path_to_aerial_imagery_folder 
-                + "padded/"
+                + 'padded/'
             )
             
             
         # create the experiment name string for saving models and results
         if HYPER.RED_CAND_DATA_ACT_LRN:
-        
             self.experiment_name = 'delta1'
-        
+            
         else:
-        
             self.experiment_name = 'delta0'
             
         if HYPER.UPD_VAL_DATA_ACT_LRN:
-        
             self.experiment_name += '_valup1'
-        
+            
         else:
-        
             self.experiment_name += '_valup0'
             
             
         # create a results folder if not existent
-        path_to_results = 'results/'
-            
+        path_to_results = '../results/'
         if not os.path.exists(path_to_results):
-            
             os.mkdir(path_to_results)
         
-        
         # set the path to the folder for saving trained encoders     
-        self.path_to_encoder_weights = 'results/encoder weights/'
+        self.path_to_encoder_weights = path_to_results + 'encoder weights/'
 
         if not os.path.exists(self.path_to_encoder_weights):
-            
             os.mkdir(self.path_to_encoder_weights)
             
         self.path_to_encoder_weights += self.experiment_name + '/'
 
         if not os.path.exists(self.path_to_encoder_weights):
-        
             os.mkdir(self.path_to_encoder_weights)
         
         
         # set the path to the folder for saving trained AL models
         if HYPER.SAVE_ACT_LRN_MODELS:
-  
-            self.path_to_AL_models = 'results/models/'
+            self.path_to_AL_models = path_to_results +'models/'
             
             if not os.path.exists(self.path_to_AL_models):
-                
                 os.mkdir(self.path_to_AL_models)
                 
             self.path_to_AL_models += self.experiment_name + '/'
             
             if not os.path.exists(self.path_to_AL_models):
-                
                 os.mkdir(self.path_to_AL_models)
         
                 
         # set the path to the folder for saving AL test results or hyper params       
         if HYPER.SAVE_ACT_LRN_RESULTS or HYPER.SAVE_HYPER_PARAMS:
-                
-            self.path_to_AL_results = 'results/values/'
+            self.path_to_AL_results = path_to_results + 'values/'
         
             if not os.path.exists(self.path_to_AL_results):
-            
                 os.mkdir(self.path_to_AL_results)
 
             self.path_to_AL_results += self.experiment_name + '/'
             
             if not os.path.exists(self.path_to_AL_results):
-                
                 os.mkdir(self.path_to_AL_results)
                 
                 
         # set the path to the folder for saving AL test results or hyper params       
         if HYPER.SAVE_ACT_LRN_TEST_SAMPLE:
-     
-            self.path_to_AL_test_samples = 'results/samples/'
+            self.path_to_AL_test_samples = path_to_results + 'samples/'
         
             if not os.path.exists(self.path_to_AL_test_samples):
-            
                 os.mkdir(self.path_to_AL_test_samples)
 
             self.path_to_AL_test_samples += self.experiment_name + '/'
             
             if not os.path.exists(self.path_to_AL_test_samples):
-                
                 os.mkdir(self.path_to_AL_test_samples)
                 
 
@@ -193,14 +165,14 @@ class RawData:
 
 class Dataset:
 
-    """ Keeps a dataset together that contains multiple elements of X_t, X_s, X_s1, X_st 
-        and Y.
+    """ Keeps a dataset together that contains multiple elements of X_t, X_s, 
+    X_s1, X_st and Y.
     """
 
     def __init__(self, X_t, X_s, X_s1, X_st, Y):
 
-        """ Initializes a complete set of attributes for a new Dataset object. Note that 
-            missing values should conventionally be passed with a zero.
+        """ Initializes a complete set of attributes for a new Dataset object. 
+        Note that missing values should conventionally be passed with a zero.
         """
 
         self.X_t = X_t
@@ -224,14 +196,19 @@ class Dataset:
 
         if type(self.X_t) != int and type(self.X_t) != float:
             self.X_t = self.X_t[random_array]
+            
         if type(self.X_s) != int and type(self.X_s) != float:
             self.X_s = self.X_s[random_array]
+            
         if type(self.X_s1) != int and type(self.X_s1) != float:
             self.X_s1 = self.X_s1[random_array]
+            
         if type(self.X_st) != int and type(self.X_st) != float:
             self.X_st = self.X_st[random_array]
+            
         if type(self.Y) != int and type(self.Y) != float:
             self.Y = self.Y[random_array]
+            
         if hasattr(self, "Y_copy"):
             if type(self.Y_copy) != int and type(self.Y_copy) != float:
                 self.Y_copy = self.Y_copy[random_array]
@@ -247,31 +224,31 @@ class Dataset:
 
 def import_consumption_profiles(HYPER, raw_data, silent=False, plot=True):
 
-    """ Imports consumption profiles and appends the following lists to the raw_data object: 
-        building_year_profiles_list, building_id_list, cluster_id_list, year_id_list, 
-        building_id_set, cluster_id_set, year_id_set, cluster_year_set.
+    """ Imports consumption profiles and appends the following lists to the 
+    raw_data object: building_year_profiles_list, building_id_list, 
+    cluster_id_list, year_id_list, building_id_set, cluster_id_set, year_id_set, 
+    cluster_year_set.
     """
 
     if not silent:
         # tell us what we are doing
-        print("Importing consumption profiles")
+        print('Importing consumption profiles')
 
         # create a progress bar
         progbar = tf.keras.utils.Progbar(len(HYPER.PROFILE_YEARS))
 
     # save dataframes here instead of under distinct names
     building_year_profiles_list = []
-
     memory_demand_GB = 0
 
-    # iterate over the list of years for which we want to consider/import load profiles
+    # iterate over the list of years for which we want to import load profiles
     for index_year, year in enumerate(HYPER.PROFILE_YEARS):
 
         # get the path to currently iterated building-year profiles file
         path_to_building_year_profile_files = (
             raw_data.path_to_building_year_profile_folder
             + str(year)
-            + " building-year profiles.csv"
+            + ' building-year profiles.csv'
         )
 
         # load currently iterated file
@@ -291,12 +268,12 @@ def import_consumption_profiles(HYPER, raw_data, silent=False, plot=True):
         # drop the cluder id and year rows
         df = df.drop([0, 1])
 
-        # rename the 'building ID' column name to 'local_time' so as to match the meteo 
-        # files' column name for search later
-        df = df.rename(columns={"building ID": "local_time"})
+        # rename the 'building ID' column name to 'local_time' so as to match 
+        # the meteo files' column name for search later
+        df = df.rename(columns={'building ID': 'local_time'})
 
         # get the time stamp of the imported meters
-        time_stamp_profiles = df.pop("local_time")
+        time_stamp_profiles = df.pop('local_time')
 
         # set the new time stamp as index
         df = df.set_index(time_stamp_profiles)
@@ -310,8 +287,8 @@ def import_consumption_profiles(HYPER, raw_data, silent=False, plot=True):
         cluster_ids = cluster_ids[randomize]
         year_ids = year_ids[randomize]
 
-        # shorten the considered ID lists according to your chosen number of considerable 
-        # profiles per year
+        # shorten the considered ID lists according to your chosen number of  
+        # considerable profiles per year
         building_ids = building_ids[: HYPER.PROFILES_PER_YEAR]
         cluster_ids = cluster_ids[: HYPER.PROFILES_PER_YEAR]
         year_ids = year_ids[: HYPER.PROFILES_PER_YEAR]
@@ -337,7 +314,7 @@ def import_consumption_profiles(HYPER, raw_data, silent=False, plot=True):
         # append dataframe
         building_year_profiles_list.append(df)
 
-        # accumulate the memory demand of each building-year profile file we imported
+        # accumulate the memory demand of building-year profiles we imported
         memory_demand_GB = memory_demand_GB + df.memory_usage().sum() * 1e-9
 
         if not silent:
@@ -350,7 +327,7 @@ def import_consumption_profiles(HYPER, raw_data, silent=False, plot=True):
     # get the set of building IDs, i.e. drop the duplicate entries
     cluster_id_set = set(cluster_id_list)
 
-    # get the set of year IDs. Note: this should be equal to hyper parameter PROFILE_YEARS
+    # get the set of year IDs. Note: this should be equal to PROFILE_YEARS
     year_id_set = set(year_id_list)
 
     # get set of cluster-year ID combinations
@@ -367,17 +344,17 @@ def import_consumption_profiles(HYPER, raw_data, silent=False, plot=True):
 
     # Tell us how much RAM we are occupying with the just imported profiles
     print(
-        "The",
+        'The',
         len(building_id_list),
-        "imported electric load profiles demand a total amount of",
+        'imported electric load profiles demand a total amount of',
         memory_demand_GB,
-        "GB of RAM",
+        'GB of RAM',
     )
 
     if plot:
 
-        # set the number of subplots to the minimum of the desired value and the actually 
-        # available profiles for plotting
+        # set the number of subplots to the minimum of the desired value and the  
+        # actually available profiles for plotting
         n_subplots = min(raw_data.n_subplots, len(df.columns))
 
         # Visualize some profiles
@@ -393,19 +370,19 @@ def import_consumption_profiles(HYPER, raw_data, silent=False, plot=True):
 
 def import_building_images(HYPER, raw_data, silent=False, plot=True):
 
-    """ Imports building-scale aerial imagery and appends the following to the raw_data 
-        object: building_imagery_data_list, building_imagery_id_list.
+    """ Imports building-scale aerial imagery and appends the following to the 
+    raw_data object: building_imagery_data_list, building_imagery_id_list.
     """
 
     if not silent:
 
         # tell us what we do
-        print("Importing building-scale aerial imagery:")
+        print('Importing building-scale aerial imagery:')
 
         # create a progress bar
         progbar = tf.keras.utils.Progbar(len(raw_data.building_id_set))
 
-        # create a variabl to iteratively add the memory demand of each imported file
+        # create a variabl to iteratively add the memory of imported files
         memory_demand_GB = 0
 
     # create a empty lists for aerial image data and building ids
@@ -415,7 +392,10 @@ def import_building_images(HYPER, raw_data, silent=False, plot=True):
     if HYPER.PUBLIC_ACCESS:
         
         # create path to imagery data file
-        path_to_file = raw_data.path_to_aerial_imagery_folder + 'pixel_values.csv'
+        path_to_file = (
+            raw_data.path_to_aerial_imagery_folder 
+            + 'pixel_values.csv'
+        )
 
         # import building imagery data
         df = pd.read_csv(path_to_file)
@@ -431,10 +411,11 @@ def import_building_images(HYPER, raw_data, silent=False, plot=True):
             # get the number of features per image pixel array channel
             if HYPER.SPATIAL_FEATURES == 'average':
                 n_features = 1
+                
             elif HYPER.SPATIAL_FEATURES == 'histogram':
                 n_features = HYPER.HISTO_BINS
 
-            # reshape image with Fortran method. This was also the method used to flatten.
+            # reshape image with Fortran method. This is method used to flatten.
             imagery_pixel_data = np.reshape(
                 imagery_pixel_data, 
                 (n_features, raw_data.n_channels), 
@@ -459,7 +440,7 @@ def import_building_images(HYPER, raw_data, silent=False, plot=True):
         for building_id in raw_data.building_id_set:
 
             # get the file name first
-            file_name = "building " + building_id + ".png"
+            file_name = 'building ' + building_id + '.png'
 
             # create the entire path to the currently iterated file
             path_to_file = raw_data.path_to_aerial_imagery_folder + file_name
@@ -471,7 +452,7 @@ def import_building_images(HYPER, raw_data, silent=False, plot=True):
             if HYPER.GREY_SCALE == True:
 
                 # convert to grey-scale
-                image = image.convert("L")
+                image = image.convert('L')
 
                 # transform the image to a numeric array
                 image = np.asarray(image)
@@ -484,13 +465,14 @@ def import_building_images(HYPER, raw_data, silent=False, plot=True):
                 # transform the image to a numeric array
                 image = np.asarray(image)
 
-            # down-scale image if this is chosen, note that image array entries are rounded to 
-            # integer again to save RAM. Before up-scaling, multiplication with a large factor 
-            # ensured that rounding errors are small, and one can again down-sample with the 
-            # same factor during training with no loss of RAM and information
+            # down-scale image if this is chosen, note that image array entries 
+            # are rounded to integer again to save RAM. Before up-scaling, 
+            # multiplication with a large factor ensured that rounding errors 
+            # are small, and one can again down-sample with the same factor 
+            # during training with no loss of RAM and information
             if HYPER.DOWN_SCALE_BUILDING_IMAGES is not None:
 
-                # note that the downscaled images will have float entries instead of integers
+                # note that downscaled have float entries instead of integers
                 image = rescale(
                     image,
                     1 / HYPER.DOWN_SCALE_BUILDING_IMAGES,
@@ -548,13 +530,13 @@ def import_building_images(HYPER, raw_data, silent=False, plot=True):
 
     if not silent:
 
-        # Tell us how much RAM we are occupying with the just imported data files
+        # Tell us how much RAM we occupy with the just imported data files
         print(
-            "The",
+            'The',
             len(building_imagery_data_list),
-            "aerial images demand",
+            'aerial images demand',
             memory_demand_GB,
-            "GB RAM with float32 entries",
+            'GB RAM with float32 entries',
         )
  
     # add to raw_data instance
@@ -566,16 +548,17 @@ def import_building_images(HYPER, raw_data, silent=False, plot=True):
 
 def import_meteo_data(HYPER, raw_data, silent=False, plot=True):
 
-    """ Imports cluster-scale meteorological data and appends the following information to 
-        the raw_data object: meteo_data_list, meteo_data_cluster_year_array.
+    """ Imports cluster-scale meteorological data and appends the following 
+    information to the raw_data object: meteo_data_list, 
+    meteo_data_cluster_year_array.
     """
 
     if not silent:
 
         # tell us what we do
-        print("Importing meteorological data")
+        print('Importing meteorological data')
 
-        # create a variabl to iteratively add the memory demand of each imported file
+        # create a variabl to iteratively add the memory demand of each file
         memory_demand_GB = 0
 
         # create a progress bar
@@ -584,8 +567,8 @@ def import_meteo_data(HYPER, raw_data, silent=False, plot=True):
     # create list for saving meteo data
     meteo_data_list = []
 
-    # create array for saving corresponding cluster and year IDs of meteo files that are 
-    # added to the list
+    # create array for saving corresponding cluster and year IDs of meteo files
+    # that are added to the list
     meteo_data_cluster_year_array = np.zeros(
         (
             len(raw_data.cluster_year_set), 
@@ -600,11 +583,11 @@ def import_meteo_data(HYPER, raw_data, silent=False, plot=True):
     for cluster_id, year_id in raw_data.cluster_year_set:
 
         file_name = (
-            "meteo_"
+            'meteo_'
             + str(cluster_id)
-            + "_"
+            + '_'
             + str(int(HYPER.PROFILE_YEARS[year_id]))
-            + ".csv"
+            + '.csv'
         )
 
         # create the entire path to the currently iterated file
@@ -614,9 +597,9 @@ def import_meteo_data(HYPER, raw_data, silent=False, plot=True):
         df = pd.read_csv(path_to_file)
 
         # set one of the columns 'local_time' as index for later search purposes
-        df = df.set_index("local_time")
+        df = df.set_index('local_time')
 
-        # shorten dataframe according to the meteo data types that you chose to consider
+        # shorten dataframe according to the meteo data types that you chose
         df = df[HYPER.METEO_TYPES]
 
         # append to list
@@ -640,13 +623,13 @@ def import_meteo_data(HYPER, raw_data, silent=False, plot=True):
 
     if not silent:
 
-        # Tell us how much RAM we are occupying with the just imported data files
+        # Tell us how much RAM we occupy with the just imported data files
         print(
-            "The",
+            'The',
             len(raw_data.cluster_year_set),
-            "meteo data files demand",
+            'meteo data files demand',
             memory_demand_GB,
-            "GB RAM",
+            'GB RAM',
         )
 
     if plot:
@@ -667,7 +650,8 @@ def import_meteo_data(HYPER, raw_data, silent=False, plot=True):
 
 def create_feature_label_pairs(HYPER, raw_data, silent=False):
 
-    """ Creates pairs of features and labels, and returns these bundled as a Dataset object.
+    """ Creates pairs of features and labels, and returns these bundled as a 
+    Dataset object.
     """
 
     # determine start and end of iteration over each paired dataframe
@@ -694,13 +678,13 @@ def create_feature_label_pairs(HYPER, raw_data, silent=False):
     X_s = np.zeros((n_datapoints, 2))
     Y = np.zeros((n_datapoints, HYPER.PREDICTION_WINDOW))
 
-    # create a datapoint counter to increment and add to the respective data point entries
+    # create a datapoint counter to increment and add to the data entries
     datapoint_counter = 0
 
     if not silent:
 
         # tell us what we do
-        print("Creating feature label data pairs:")
+        print('Creating feature label data pairs:')
 
         # create a progress bar
         progbar = tf.keras.utils.Progbar(n_datapoints)
@@ -719,15 +703,15 @@ def create_feature_label_pairs(HYPER, raw_data, silent=False):
         # get the year in gregorian calendar here
         year = int(HYPER.PROFILE_YEARS[year_id])
 
-        # get the index of the meteo data list entry that correspondings to the currently 
-        # iterated cluster-year ID combination
+        # get the index of the meteo data list entry that correspondings to 
+        # the currently iterated cluster-year ID combination
         index_meteo_data_list = np.where(
             (raw_data.meteo_data_cluster_year_array[:, 0] == cluster_id)
             & (raw_data.meteo_data_cluster_year_array[:, 1] == year_id)
         )[0][0]
 
-        # create a new dataframe that merges the meteo values and load profile values by 
-        # index col 'local_time'
+        # create a new dataframe that merges the meteo values and load profile
+        # values by index col 'local_time'
         paired_df = raw_data.building_year_profiles_list[year_id][
             building_id_subset
         ].merge(raw_data.meteo_data_list[index_meteo_data_list], on="local_time")
@@ -741,8 +725,8 @@ def create_feature_label_pairs(HYPER, raw_data, silent=False):
             hour = paired_df.index[i][11:13]
             minute_15 = paired_df.index[i][14:16]
 
-            # get the meteo features. Note that you need to jump in hourly steps back in 
-            # time, hence all times 4
+            # get the meteo features. Note that you need to jump in hourly
+            # steps back in time, hence all times 4
             meteo = paired_df.iloc[
                 (i - (HYPER.HISTORY_WINDOW_METEO * 4)) : i : 4,
                 -(len(HYPER.METEO_TYPES)) :,
@@ -778,17 +762,21 @@ def create_feature_label_pairs(HYPER, raw_data, silent=False):
     # create empty list
     filter_list = []
 
-    # check for all possible entries in correct order and add to filter list if not in 
-    # chosen TIMESTAMP_DATA
-    if "15min" not in HYPER.TIMESTAMP_DATA:
+    # check for all possible entries in correct order and add to filter list if 
+    # not in chosen TIMESTAMP_DATA
+    if '15min' not in HYPER.TIMESTAMP_DATA:
         filter_list.append(0)
-    if "hour" not in HYPER.TIMESTAMP_DATA:
+        
+    if 'hour' not in HYPER.TIMESTAMP_DATA:
         filter_list.append(1)
-    if "day" not in HYPER.TIMESTAMP_DATA:
+        
+    if 'day' not in HYPER.TIMESTAMP_DATA:
         filter_list.append(2)
-    if "month" not in HYPER.TIMESTAMP_DATA:
+        
+    if 'month' not in HYPER.TIMESTAMP_DATA:
         filter_list.append(3)
-    if "year" not in HYPER.TIMESTAMP_DATA:
+        
+    if 'year' not in HYPER.TIMESTAMP_DATA:
         filter_list.append(4)
 
     # delete the columns according to created filter_list
@@ -810,14 +798,14 @@ def create_feature_label_pairs(HYPER, raw_data, silent=False):
     ### Process spatial features ###
 
     # check how we chose to consider spatial features
-    if HYPER.SPATIAL_FEATURES != "image":
+    if HYPER.SPATIAL_FEATURES != 'image':
 
         if HYPER.PUBLIC_ACCESS == False:
 
             ### Transform images to average/histogram arrays ###
 
             # check if averages are chosen to be used for spatial features
-            if HYPER.SPATIAL_FEATURES == "average":
+            if HYPER.SPATIAL_FEATURES == 'average':
 
                 # iterate over all building-scale images
                 for index, image in enumerate(
@@ -840,7 +828,7 @@ def create_feature_label_pairs(HYPER, raw_data, silent=False):
                     raw_data.building_imagery_data_list[index] = value_array
 
             # check if histograms are chosen to be used for spatial features
-            elif HYPER.SPATIAL_FEATURES == "histogram":
+            elif HYPER.SPATIAL_FEATURES == 'histogram':
 
                 # iterate over all building-scale images
                 for index, image in enumerate(
@@ -865,7 +853,7 @@ def create_feature_label_pairs(HYPER, raw_data, silent=False):
                             bins=HYPER.HISTO_BINS,
                         )[0]
 
-                    # assign value array of histograms to currently iterated image
+                    # assign value array of histograms to iterated image
                     raw_data.building_imagery_data_list[index] = value_array
 
 
@@ -874,11 +862,10 @@ def create_feature_label_pairs(HYPER, raw_data, silent=False):
         # iterate over number of channels
         for i in range(raw_data.n_channels):
 
-            # create an empty dataframe with one column 'building id' for currently iterated 
-            # channel
-            df_list.append(pd.DataFrame(columns=["building id"]))
+            # create dataframe with one column 'building id' for iterated channel
+            df_list.append(pd.DataFrame(columns=['building id']))
 
-        # iterate over all building scale images and their corresponding building IDs
+        # iterate over all building scale images and their building IDs
         for index, image in enumerate(raw_data.building_imagery_data_list):
 
             building_id = raw_data.building_imagery_id_list[index]
@@ -906,11 +893,11 @@ def create_feature_label_pairs(HYPER, raw_data, silent=False):
             # merge the columns of building ID in X_s and the new dataframe
             paired_df = pd.DataFrame(
                 dataset.X_s, 
-                columns=["building id", "cluster id"]
+                columns=['building id', 'cluster id']
             ).merge(
                 df_list[i], 
-                on="building id", 
-                how="left"
+                on='building id', 
+                how='left'
             )
 
             # pass the paired values to X_s1
@@ -921,15 +908,16 @@ def create_feature_label_pairs(HYPER, raw_data, silent=False):
 
 def encode_time_features(HYPER, dataset, silent=False):
 
-    """ Takes X_t as input and returns it as ordinally encoded, One-Hot-Encoded, or single 
-        dimensionally ordinally encoded array, according to hyper parameter TIME_ENCODING.
+    """ Takes X_t as input and returns it as ordinally encoded, One-Hot-Encoded, 
+    or single dimensionally ordinally encoded array, according to hyper 
+    parameter TIME_ENCODING.
     """
 
     if not silent:
 
         # tell us what we do
-        print("Encoding temporal features")
-        print("X_t before:", dataset.X_t[0])
+        print('Encoding temporal features')
+        print('X_t before:', dataset.X_t[0])
 
     ###
     # Ordinally encode all available time stamp dimensions ###
@@ -965,23 +953,23 @@ def encode_time_features(HYPER, dataset, silent=False):
     X_t_copy = dataset.X_t
 
     # check for all possible entries
-    if "15min" in HYPER.TIMESTAMP_DATA:
+    if '15min' in HYPER.TIMESTAMP_DATA:
         dataset.X_t_ord_1D += X_t_copy[:, 0] * 15
         X_t_copy = np.delete(X_t_copy, 0, 1)
 
-    if "hour" in HYPER.TIMESTAMP_DATA:
+    if 'hour' in HYPER.TIMESTAMP_DATA:
         dataset.X_t_ord_1D += X_t_copy[:, 0] * 60
         X_t_copy = np.delete(X_t_copy, 0, 1)
 
-    if "day" in HYPER.TIMESTAMP_DATA:
+    if 'day' in HYPER.TIMESTAMP_DATA:
         dataset.X_t_ord_1D += X_t_copy[:, 0] * 60 * 24
         X_t_copy = np.delete(X_t_copy, 0, 1)
 
-    if "month" in HYPER.TIMESTAMP_DATA:
+    if 'month' in HYPER.TIMESTAMP_DATA:
         dataset.X_t_ord_1D += X_t_copy[:, 0] * 60 * 24 * 31
         X_t_copy = np.delete(X_t_copy, 0, 1)
 
-    if "year" in HYPER.TIMESTAMP_DATA:
+    if 'year' in HYPER.TIMESTAMP_DATA:
         dataset.X_t_ord_1D += X_t_copy[:, 0] * 60 * 24 * 31 * 12
         X_t_copy = np.delete(X_t_copy, 0, 1)
 
@@ -989,7 +977,7 @@ def encode_time_features(HYPER, dataset, silent=False):
     #  If chosen so, transform encoding here ###
     ###
 
-    if HYPER.TIME_ENCODING == "OHE":
+    if HYPER.TIME_ENCODING == 'OHE':
 
         # get OHE encoder
         enc = OneHotEncoder()
@@ -1000,7 +988,7 @@ def encode_time_features(HYPER, dataset, silent=False):
         # encode temporal features
         dataset.X_t = enc.transform(dataset.X_t).toarray().astype(int)
 
-    elif HYPER.TIME_ENCODING == "ORD-1D":
+    elif HYPER.TIME_ENCODING == 'ORD-1D':
 
         # copy the 1D ordinal array to X_t
         dataset.X_t = dataset.X_t_ord_1D
@@ -1010,14 +998,15 @@ def encode_time_features(HYPER, dataset, silent=False):
 
     if not silent:
 
-        print("X_t after: {} ({})".format(dataset.X_t[0], HYPER.TIME_ENCODING))
+        print('X_t after: {} ({})'.format(dataset.X_t[0], HYPER.TIME_ENCODING))
 
     return dataset
 
 
 def normalize_features(HYPER, raw_data, dataset, silent=False):
 
-    """ Min-max normalizes all features if hyper parameter NORMALIZATION is set True.
+    """ Min-max normalizes all features if hyper parameter NORMALIZATION is set 
+    True.
     """
 
     if HYPER.NORMALIZATION:
@@ -1025,13 +1014,13 @@ def normalize_features(HYPER, raw_data, dataset, silent=False):
         if not silent:
         
             # tell us what we do
-            print("Normalizing features")
+            print('Normalizing features')
 
         # get min-max scaler from the sklearn preprocessing package
         min_max_scaler = preprocessing.MinMaxScaler()
 
         # normalize X_t in the case that it is not OHE
-        if HYPER.TIME_ENCODING != "OHE":
+        if HYPER.TIME_ENCODING != 'OHE':
             dataset.X_t = min_max_scaler.fit_transform(dataset.X_t)
 
         # normalize X_st
@@ -1041,7 +1030,7 @@ def normalize_features(HYPER, raw_data, dataset, silent=False):
             )
 
         # normalize X_s1
-        if HYPER.SPATIAL_FEATURES != "image":
+        if HYPER.SPATIAL_FEATURES != 'image':
 
             for channel in range(raw_data.n_channels):
                 dataset.X_s1[:, :, channel] = min_max_scaler.fit_transform(
@@ -1053,16 +1042,17 @@ def normalize_features(HYPER, raw_data, dataset, silent=False):
 
 def split_train_val_test(HYPER, raw_data, dataset, silent=False):
 
-    """ Splits passed dataset into trainin, validation and three different test sets:
+    """ Splits passed dataset into trainin, validation and three different test 
+    sets:
         1. spatial tests (building IDs that are not in training/validation data)
         2. temporal tests (time stamps not in training/validation data)
-        3. spatio-temporal test (neither time stamp, nor building ID is in training and 
-        validation data).
+        3. spatio-temporal test (neither time stamp, nor building ID is in 
+        training and validation data).
     """
 
     if not silent:
         # tell us what we are doing
-        print("Splitting data into training, validation and testing sets.")
+        print('Splitting data into training, validation and testing sets.')
 
     ###
     # Reduce memory demand ###
@@ -1073,7 +1063,7 @@ def split_train_val_test(HYPER, raw_data, dataset, silent=False):
     dataset.Y = np.float32(dataset.Y)
     dataset.X_s = dataset.X_s.astype(int)
 
-    if HYPER.SPATIAL_FEATURES != "image":
+    if HYPER.SPATIAL_FEATURES != 'image':
         dataset.X_s1 = np.float32(dataset.X_s1)
 
     ###
@@ -1086,14 +1076,14 @@ def split_train_val_test(HYPER, raw_data, dataset, silent=False):
     dataset.X_st = dataset.X_st[sort_array]
     dataset.Y = dataset.Y[sort_array]
 
-    if HYPER.SPATIAL_FEATURES != "image":
+    if HYPER.SPATIAL_FEATURES != 'image':
         dataset.X_s1 = dataset.X_s1[sort_array]
 
     ###
     # Take away data from both ends of sorted arrays ###
     ###
 
-    # get the number of datapoints that you want to cut out for temporal prediction tests
+    # get the number of datapoints to cut out for temporal prediction tests
     split_point = math.ceil(HYPER.TEST_SPLIT / 2 * dataset.n_datapoints)
 
     ### extract data from beginning of temporaly sorted dataset ###
@@ -1109,7 +1099,7 @@ def split_train_val_test(HYPER, raw_data, dataset, silent=False):
     temporal_Y = dataset.Y[:split_point]
     dataset.Y = dataset.Y[split_point:]
 
-    if HYPER.SPATIAL_FEATURES != "image":
+    if HYPER.SPATIAL_FEATURES != 'image':
         temporal_X_s1 = dataset.X_s1[:split_point]
         dataset.X_s1 = dataset.X_s1[split_point:]
 
@@ -1146,7 +1136,7 @@ def split_train_val_test(HYPER, raw_data, dataset, silent=False):
     )
     dataset.Y = dataset.Y[:-split_point]
 
-    if HYPER.SPATIAL_FEATURES != "image":
+    if HYPER.SPATIAL_FEATURES != 'image':
         temporal_X_s1 = np.concatenate(
             (
                 temporal_X_s1, 
@@ -1185,7 +1175,7 @@ def split_train_val_test(HYPER, raw_data, dataset, silent=False):
     spatial_Y = dataset.Y
     dataset.Y = 0
 
-    if HYPER.SPATIAL_FEATURES != "image":
+    if HYPER.SPATIAL_FEATURES != 'image':
         spatial_X_s1 = dataset.X_s1
         dataset.X_s1 = 0
 
@@ -1209,7 +1199,7 @@ def split_train_val_test(HYPER, raw_data, dataset, silent=False):
     spatemp_X_st = temporal_X_st[boolean_filter_array]
     spatemp_Y = temporal_Y[boolean_filter_array]
 
-    if HYPER.SPATIAL_FEATURES != "image":
+    if HYPER.SPATIAL_FEATURES != 'image':
         spatemp_X_s1 = temporal_X_s1[boolean_filter_array]
 
     else:
@@ -1236,7 +1226,7 @@ def split_train_val_test(HYPER, raw_data, dataset, silent=False):
     temporal_X_st = temporal_X_st[inverted_boolean_filter_array]
     temporal_Y = temporal_Y[inverted_boolean_filter_array]
 
-    if HYPER.SPATIAL_FEATURES != "image":
+    if HYPER.SPATIAL_FEATURES != 'image':
         temporal_X_s1 = temporal_X_s1[inverted_boolean_filter_array]
 
     else:
@@ -1277,7 +1267,7 @@ def split_train_val_test(HYPER, raw_data, dataset, silent=False):
     train_val_X_st = spatial_X_st[inverted_boolean_filter_array]
     train_val_Y = spatial_Y[inverted_boolean_filter_array]
 
-    if HYPER.SPATIAL_FEATURES != "image":
+    if HYPER.SPATIAL_FEATURES != 'image':
         train_val_X_s1 = spatial_X_s1[inverted_boolean_filter_array]
 
     ### Spatial ###
@@ -1286,7 +1276,7 @@ def split_train_val_test(HYPER, raw_data, dataset, silent=False):
     spatial_X_st = spatial_X_st[boolean_filter_array]
     spatial_Y = spatial_Y[boolean_filter_array]
 
-    if HYPER.SPATIAL_FEATURES != "image":
+    if HYPER.SPATIAL_FEATURES != 'image':
         spatial_X_s1 = spatial_X_s1[boolean_filter_array]
 
     else:
@@ -1322,7 +1312,7 @@ def split_train_val_test(HYPER, raw_data, dataset, silent=False):
     train_val_X_s = train_val_X_s[random_array]
     train_val_X_st = train_val_X_st[random_array]
     train_val_Y = train_val_Y[random_array]
-    if HYPER.SPATIAL_FEATURES != "image":
+    if HYPER.SPATIAL_FEATURES != 'image':
         train_val_X_s1 = train_val_X_s1[random_array]
 
     # get splitting point for training validation split
@@ -1341,7 +1331,7 @@ def split_train_val_test(HYPER, raw_data, dataset, silent=False):
     Y_train, Y_val = np.split(train_val_Y, [split_point])
     train_val_Y = 0
 
-    if HYPER.SPATIAL_FEATURES != "image":
+    if HYPER.SPATIAL_FEATURES != 'image':
         X_s1_train, X_s1_val = np.split(train_val_X_s1, [split_point])
         train_val_X_s1 = 0
 
@@ -1398,47 +1388,47 @@ def split_train_val_test(HYPER, raw_data, dataset, silent=False):
         )
 
         print(
-            "With TRAIN_SPLIT =",
+            'With TRAIN_SPLIT =',
             HYPER.TRAIN_SPLIT,
-            " and TEST_SPLIT =",
+            ' and TEST_SPLIT =',
             HYPER.TEST_SPLIT,
-            "the data is split in the following ration:",
+            'the data is split in the following ration:',
         )
-        print("---" * 38)
+        print('---' * 38)
 
         print(
-            "Training data:   {} ({:.0%})".format(
+            'Training data:   {} ({:.0%})'.format(
                 training_data.n_datapoints,
                 training_data.n_datapoints / n_total_datapoints,
             )
         )
         print(
-            "Validation data: {} ({:.0%})".format(
+            'Validation data: {} ({:.0%})'.format(
                 validation_data.n_datapoints,
                 validation_data.n_datapoints / n_total_datapoints,
             )
         )
         print(
-            "Testing data:    {} ({:.0%})".format(
+            'Testing data:    {} ({:.0%})'.format(
                 n_test_datapoints, n_test_datapoints / n_total_datapoints
             )
         )
-        print("---" * 38)
+        print('---' * 38)
 
         print(
-            "Spatial testing data:         {} ({:.0%})".format(
+            'Spatial testing data:         {} ({:.0%})'.format(
                 spatial_test_data.n_datapoints,
                 spatial_test_data.n_datapoints / n_test_datapoints,
             )
         )
         print(
-            "Temporal testing data:        {} ({:.0%})".format(
+            'Temporal testing data:        {} ({:.0%})'.format(
                 temporal_test_data.n_datapoints,
                 temporal_test_data.n_datapoints / n_test_datapoints,
             )
         )
         print(
-            "Spatio-temporal testing data: {} ({:.0%})".format(
+            'Spatio-temporal testing data: {} ({:.0%})'.format(
                 spatemp_test_data.n_datapoints,
                 spatemp_test_data.n_datapoints / n_test_datapoints,
             )
@@ -1461,10 +1451,10 @@ def standardize_features(
     silent=False
 ):
 
-    """ Converts the population of each feature into a standard score using mean and std 
-        deviations. For X_st, the past time steps of each meteorological condition are 
-        transformed separately. For X_s1, the histogram or average values of each channel 
-        are transformed separately.
+    """ Converts the population of each feature into a standard score using mean 
+    and std deviations. For X_st, the past time steps of each meteorological 
+    condition are transformed separately. For X_s1, the histogram or average 
+    values of each channel are transformed separately.
     """
 
     if HYPER.STANDARDIZATION:
@@ -1472,13 +1462,13 @@ def standardize_features(
         if not silent:
 
             # tell us what we do
-            print("Standardizing data")
+            print('Standardizing data')
 
         # get StandardScaler from the sklearn preprocessing package
         standard_scaler = preprocessing.StandardScaler()
 
         # standardize X_t in the case that it is not OHE
-        if HYPER.TIME_ENCODING != "OHE":
+        if HYPER.TIME_ENCODING != 'OHE':
 
             standard_scaler.fit(reference_data.X_t)
             dataset.X_t = standard_scaler.transform(dataset.X_t)
@@ -1492,7 +1482,7 @@ def standardize_features(
             )
 
         # standardize X_s1
-        if HYPER.SPATIAL_FEATURES != "image":
+        if HYPER.SPATIAL_FEATURES != 'image':
 
             for channel in range(raw_data.n_channels):
 
