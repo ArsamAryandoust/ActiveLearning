@@ -8,8 +8,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 
 class EncodersAndPredictor:
-    """ Keeps prediction and encoding models together.
-    """
+    """ Keeps prediction and encoding models together. """
 
     def __init__(
         self, 
@@ -47,7 +46,7 @@ def initialize_optimizer(HYPER):
     # set an optimization algorithm
     optimizer = tf.keras.optimizers.RMSprop()
     
-    # set the loss metric for training and testing. This is always the regression loss.
+    # set the loss metric for training and testing. This is always for regression.
     loss_function = HYPER.REGRESSION_LOSS[0]
     
     # set that we want to calculate the mean with respect to individual losses
@@ -58,8 +57,7 @@ def initialize_optimizer(HYPER):
 
 def create_and_train_RF(HYPER, train_data):
 
-    """ Creates, trains and returns a Random Forest regression model.
-    """
+    """ Creates, trains and returns a Random Forest regression model. """
 
     # create a random forest regression model
     RF_regr = RandomForestRegressor(
@@ -67,7 +65,7 @@ def create_and_train_RF(HYPER, train_data):
     )
 
     # train the random forest regression model
-    if HYPER.SPATIAL_FEATURES == "image":
+    if HYPER.SPATIAL_FEATURES == 'image':
         RF_regr.fit(
             np.concatenate(
                 (
@@ -79,7 +77,7 @@ def create_and_train_RF(HYPER, train_data):
                             train_data.X_st.shape[0],
                             train_data.X_st.shape[1] * train_data.X_st.shape[2],
                         ),
-                        order="F",
+                        order='F',
                     ),
                 ),
                 axis=1,
@@ -105,7 +103,7 @@ def create_and_train_RF(HYPER, train_data):
                             train_data.X_st.shape[0],
                             train_data.X_st.shape[1] * train_data.X_st.shape[2],
                         ),
-                        order="F",
+                        order='F',
                     ),
                 ),
                 axis=1,
@@ -118,10 +116,9 @@ def create_and_train_RF(HYPER, train_data):
 
 def predict_with_RF(HYPER, RF_regr, dataset):
 
-    """ Returns predictions on dataset, givne RF_regr model.
-    """
+    """ Returns predictions on dataset, givne RF_regr model. """
 
-    if HYPER.SPATIAL_FEATURES == "image":
+    if HYPER.SPATIAL_FEATURES == 'image':
         predictions = RF_regr.predict(
             np.concatenate(
                 (
@@ -133,7 +130,7 @@ def predict_with_RF(HYPER, RF_regr, dataset):
                             dataset.X_st.shape[0],
                             dataset.X_st.shape[1] * dataset.X_st.shape[2],
                         ),
-                        order="F",
+                        order='F',
                     ),
                 ),
                 axis=1,
@@ -158,7 +155,7 @@ def predict_with_RF(HYPER, RF_regr, dataset):
                             dataset.X_st.shape[0],
                             dataset.X_st.shape[1] * dataset.X_st.shape[2],
                         ),
-                        order="F",
+                        order='F',
                     ),
                 ),
                 axis=1,
@@ -208,7 +205,7 @@ def save_encoder_and_predictor_weights(HYPER, raw_data, models):
             
 def load_encoder_and_predictor_weights(raw_data, models, pred_type):
     
-    """ Loads the weights for all passed models."""
+    """ Loads the weights for all passed models. """
 
     # iterate simultaneously over models and their names
     for model_name, tf_model in models.__dict__.items():
@@ -233,8 +230,7 @@ def load_encoder_and_predictor_weights(raw_data, models, pred_type):
 
 def plot_true_vs_prediction(figtitle, test_data_Y, predictions):
 
-    """ Visualizes predictions vs. true values.
-    """
+    """ Visualizes predictions vs. true values. """
 
     plot_rows = 3
     plot_clos = 3
@@ -276,7 +272,7 @@ def plot_true_vs_prediction(figtitle, test_data_Y, predictions):
     # add a figure legend
     fig.legend(
         [plot1, plot2],
-        labels=["true load profile", "predicted load profile"],
+        labels=['true load profile', 'predicted load profile'],
         fontsize=16,
     )
 
@@ -288,16 +284,15 @@ def plot_RF_feature_importance(
     training_data
 ):
 
-    """ Plots feature importance scores.
-    """
+    """ Plots feature importance scores. """
 
     # create an empty feature name list
     feature_name_list = []
     feature_score_list = []
 
     # add temporal features
-    feature_name_list.append("temporal")
-    if HYPER.TIME_ENCODING == "ORD":
+    feature_name_list.append('temporal')
+    if HYPER.TIME_ENCODING == 'ORD':
         feature_score_list.append(
             np.average(
                 RF_feature_importance[: len(HYPER.TIMESTAMP_DATA)]
@@ -312,22 +307,22 @@ def plot_RF_feature_importance(
         RF_feature_importance = RF_feature_importance[
             len(HYPER.TIMESTAMP_DATA):
         ]
-    elif HYPER.TIME_ENCODING == "ORD-1D":
+    elif HYPER.TIME_ENCODING == 'ORD-1D':
         feature_score_list.append(RF_feature_importance[0].tolist())
         RF_feature_importance = RF_feature_importance[1:]
     else:
         print(
-            "Time encoding is OHE, and not implemented for",
-             "calculating feature importance"
+            'Time encoding is OHE, and not implemented for',
+             'calculating feature importance'
         )
 
     # add spatial features
-    feature_name_list.append("spatial")
-    if HYPER.SPATIAL_FEATURES == "image":
+    feature_name_list.append('spatial')
+    if HYPER.SPATIAL_FEATURES == 'image':
         feature_score_list.append(RF_feature_importance[0].tolist())
         RF_feature_importance = RF_feature_importance[1:]
         
-    elif HYPER.SPATIAL_FEATURES == "average":
+    elif HYPER.SPATIAL_FEATURES == 'average':
         feature_score_list.append(
             np.average(
                 RF_feature_importance[:raw_data.n_channels]
@@ -335,7 +330,7 @@ def plot_RF_feature_importance(
         )
         RF_feature_importance = RF_feature_importance[raw_data.n_channels:]
         
-    elif HYPER.SPATIAL_FEATURES == "histogram":
+    elif HYPER.SPATIAL_FEATURES == 'histogram':
         feature_score_list.append(
             np.average(
                 RF_feature_importance[: HYPER.HISTO_BINS]
@@ -344,7 +339,7 @@ def plot_RF_feature_importance(
         RF_feature_importance = RF_feature_importance[HYPER.HISTO_BINS :]
 
     # add spatio-temporal features
-    feature_name_list.append("spatio-temporal")
+    feature_name_list.append('spatio-temporal')
     feature_score_list.append(np.average(RF_feature_importance))
     
     for name in HYPER.METEO_TYPES:
@@ -358,7 +353,7 @@ def plot_RF_feature_importance(
 
     n_features = len(feature_name_list)
     plt.figure(figsize=(16, n_features * 0.5))
-    plt.title("Feature importance Random Forest")
+    plt.title('Feature importance Random Forest')
     plt.barh(
         range(n_features), 
         feature_score_list, 
@@ -374,19 +369,20 @@ def build_prediction_model(
     plot=True
 ):
 
-    """ Builds encoders and prediction model according to multiple hyper parameters. Returns 
-	    models and encoders bundled as an EncodersAndPredictor object.
+    """ Builds encoders and prediction model according to multiple hyper 
+    parameters. Returns models and encoders bundled as an EncodersAndPredictor 
+    object.
     """
 
     if not silent:
         # tell us what we do
-        print("Building prediction model")
+        print('Building prediction model')
 
     X_t_example = train_data.X_t[0]
     X_st_example = train_data.X_st[0]
     Y_example = train_data.Y[0]
     
-    if HYPER.SPATIAL_FEATURES == "image":
+    if HYPER.SPATIAL_FEATURES == 'image':
         X_s1_example = raw_data.building_imagery_data_list[0]
         
     else:
@@ -395,9 +391,9 @@ def build_prediction_model(
 
     ### Create the input layers ###
     
-    X_t_input = tf.keras.Input(shape=X_t_example.shape, name="X_t")
-    X_s1_input = tf.keras.Input(shape=X_s1_example.shape, name="X_s1")
-    X_st_input = tf.keras.Input(shape=X_st_example.shape, name="X_st")
+    X_t_input = tf.keras.Input(shape=X_t_example.shape, name='X_t')
+    X_s1_input = tf.keras.Input(shape=X_s1_example.shape, name='X_s1')
+    X_st_input = tf.keras.Input(shape=X_st_example.shape, name='X_st')
 
 
     ### Create the hidden layers ###
@@ -444,7 +440,7 @@ def build_prediction_model(
 
     ### Encode X_s1 and X_s2 ###
     
-    if HYPER.SPATIAL_FEATURES == "image":
+    if HYPER.SPATIAL_FEATURES == 'image':
         if HYPER.ENCODER_LAYERS == 0:
             X_s1 = tf.keras.layers.Conv2D(
                 HYPER.FILTERS_PER_LAYER_CNN,
@@ -542,7 +538,7 @@ def build_prediction_model(
         X_st = tf.keras.layers.Flatten()(X_st_input)
 
     else:
-        if HYPER.LAYER_TYPE_X_ST == "ANN":
+        if HYPER.LAYER_TYPE_X_ST == 'ANN':
             X_st = tf.keras.layers.Dense(
                 HYPER.NODES_PER_LAYER_DENSE,
                 activation=HYPER.DENSE_ACTIVATION,
@@ -564,7 +560,7 @@ def build_prediction_model(
                 if HYPER.BATCH_NORMALIZATION:
                     X_st = tf.keras.layers.BatchNormalization()(X_st)
 
-        elif HYPER.LAYER_TYPE_X_ST == "CNN":
+        elif HYPER.LAYER_TYPE_X_ST == 'CNN':
             X_st = tf.keras.layers.Conv1D(
                 HYPER.FILTERS_PER_LAYER_CNN,
                 2,
@@ -588,7 +584,7 @@ def build_prediction_model(
                 if HYPER.BATCH_NORMALIZATION:
                     X_st = tf.keras.layers.BatchNormalization()(X_st)
 
-        elif HYPER.LAYER_TYPE_X_ST == "LSTM":
+        elif HYPER.LAYER_TYPE_X_ST == 'LSTM':
             if HYPER.ENCODER_LAYERS == 1:
                 X_st = tf.keras.layers.LSTM(
                     HYPER.STATES_PER_LAYER_LSTM,
@@ -712,14 +708,14 @@ def build_prediction_model(
         if HYPER.BATCH_NORMALIZATION:
             joining_layer = tf.keras.layers.BatchNormalization()(joining_layer)
 
-    if HYPER.PROBLEM_TYPE == "regression":
+    if HYPER.PROBLEM_TYPE == 'regression':
         consumption_output = tf.keras.layers.Dense(
             len(Y_example),
-            activation="softplus",
+            activation='softplus',
             kernel_initializer=HYPER.INITIALIZATION,
         )(joining_layer)
         
-    elif HYPER.PROBLEM_TYPE == "classification":
+    elif HYPER.PROBLEM_TYPE == 'classification':
         consumption_output = tf.keras.layers.Dense(
             len(Y_example) * HYPER.REGRESSION_CLASSES,
             kernel_initializer=HYPER.INITIALIZATION,
@@ -756,8 +752,8 @@ def build_prediction_model(
     if plot:
 
         for model_name, tf_model in models.__dict__.items():
-            print("Computation graph for " + model_name + ":")
-            model_name = 'images/' + model_name + ".png"
+            print('Computation graph for ' + model_name + ':')
+            model_name = 'images/' + model_name + '.png'
             display(
                 tf.keras.utils.plot_model(
                     tf_model, 
@@ -766,7 +762,7 @@ def build_prediction_model(
                 )
             )
             
-            print("---" * 35)
+            print('---' * 35)
 
     # return model class instance
     return models
@@ -781,7 +777,7 @@ def train_model(
     loss_object,
     optimizer,
     mean_loss,
-    monitor="val_loss",
+    monitor='val_loss',
     silent=True,
     plot=False,
 ):
@@ -801,14 +797,14 @@ def train_model(
     # Define training and testing steps for functional API ###
     ###
 
-    if HYPER.PROBLEM_TYPE == "regression":
+    if HYPER.PROBLEM_TYPE == 'regression':
 
         # keep training and validation labels. Create copies so as to not change 
 	      # original classes.
         train_data.Y_copy = train_data.Y
         val_data.Y_copy = val_data.Y
 
-        # define the training step to execute in each iteration with a magic handle
+        # define the training step to execute in each iteration with magic
         @tf.function
         def train_step(model_input_list, Y_data):
         
@@ -833,13 +829,13 @@ def train_model(
             t_loss = loss_object(predictions, Y_data)
             mean_loss(t_loss)
 
-    elif HYPER.PROBLEM_TYPE == "classification":
+    elif HYPER.PROBLEM_TYPE == 'classification':
 
         train_data.Y_copy = train_data.Y
         val_data.Y_copy = val_data.Y
 
-        # convert training and validation labels into classes. Create copies so as to not 
-	    # change original classes.
+        # convert training and validation labels into classes. Create copies so 
+	      # as to not  change original classes.
         train_data.Y = np.around(
             (train_data.Y - raw_data.Y_min)
             / raw_data.Y_range
@@ -850,7 +846,7 @@ def train_model(
             (val_data.Y - raw_data.Y_min) / raw_data.Y_range * HYPER.REGRESSION_CLASSES
         )
 
-        # define the training step to execute in each iteration with a magic handle
+        # define the training step to execute in each iteration with magic 
         @tf.function
         def train_step(model_input_list, Y_data):
         
@@ -890,7 +886,7 @@ def train_model(
     # Define how to batch data in each training step ###
     ###
 
-    if HYPER.SPATIAL_FEATURES == "image":
+    if HYPER.SPATIAL_FEATURES == 'image':
 
         def create_batched_data(dataset, batching_steps):
 
@@ -993,7 +989,7 @@ def train_model(
         if not silent:
         
             # tell which epoch we are at
-            print("Epoch {}/{}".format(epoch + 1, HYPER.EPOCHS))
+            print('Epoch {}/{}'.format(epoch + 1, HYPER.EPOCHS))
 
 
         ###
@@ -1009,7 +1005,7 @@ def train_model(
         if not silent:
         
             # tell us that we start training now
-            print("Training:")
+            print('Training:')
 
             # create a progress bar for training
             progbar = tf.keras.utils.Progbar(
@@ -1036,7 +1032,7 @@ def train_model(
             # update the progress bar
             if not silent:
             
-                values = [("loss", mean_loss.result().numpy())]
+                values = [('loss', mean_loss.result().numpy())]
                 progbar.add(1, values=values)
 
         # add training loss to history
@@ -1055,7 +1051,7 @@ def train_model(
         if not silent:
         
             # Tell us that we start validating now
-            print("Validation:")
+            print('Validation:')
 
             # create a progress bar for validation
             progbar = tf.keras.utils.Progbar(
@@ -1077,7 +1073,7 @@ def train_model(
             # update the progress bar
             if not silent:
             
-                values = [("loss", mean_loss.result().numpy())]
+                values = [('loss', mean_loss.result().numpy())]
                 progbar.add(1, values=values)
 
         # add validation loss to history
@@ -1088,31 +1084,25 @@ def train_model(
         # implement early break here ###
         ###
 
-        if monitor == "val_loss":
-        
+        if monitor == 'val_loss':
             current_minimum = min(val_loss_history[-HYPER.PATIENCE :])
             
-        elif monitor == "loss":
-        
+        elif monitor == 'loss':
             current_minimum = min(train_loss_history[-HYPER.PATIENCE :])
             
         elif monitor is None:
-        
             continue
 
         if epoch == 0:
-        
             total_minimum = current_minimum
             
         if current_minimum > total_minimum:
-        
             break
             
         else:
-        
             total_minimum = min(total_minimum, current_minimum)
 
-    if HYPER.PROBLEM_TYPE == "classification":
+    if HYPER.PROBLEM_TYPE == 'classification':
     
         train_data.Y = train_data.Y_copy
         val_data.Y = val_data.Y_copy
@@ -1123,10 +1113,10 @@ def train_model(
         plt.figure(figsize=(16, 8))
         plt.plot(train_loss_history)
         plt.plot(val_loss_history)
-        plt.title("Training and validation loss history of neural network")
-        plt.ylabel("loss")
-        plt.xlabel("epoch")
-        plt.legend(["training", "validation"], loc="upper left")
+        plt.title('Training and validation loss history of neural network')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend(['training', 'validation'], loc='upper left')
         plt.show()
 
     return train_loss_history, val_loss_history
@@ -1144,18 +1134,18 @@ def test_model(
     plot=False,
 ):
 
-    """ Makes predictions on passed test_data using the past model, and returns the calculated 
-	    testing loss. Predictions are saved under the passed Dataset object's attribute 
-	    called predictions.
+    """ Makes predictions on passed test_data using the past model, and returns 
+    the calculated testing loss. Predictions are saved under the passed Dataset 
+    object's attribute called predictions.
     """
 
     # Reset the state of the test loss metric
     mean_loss.reset_states()
 
-    if HYPER.SPATIAL_FEATURES == "image":
+    if HYPER.SPATIAL_FEATURES == 'image':
 
         # create a zero matrix for saving prediction results.
-        if HYPER.PROBLEM_TYPE == "regression":
+        if HYPER.PROBLEM_TYPE == 'regression':
         
             predictions = np.zeros(
                 (
@@ -1164,7 +1154,7 @@ def test_model(
                 )
             )
             
-        elif HYPER.PROBLEM_TYPE == "classification":
+        elif HYPER.PROBLEM_TYPE == 'classification':
         
             predictions = np.zeros(
                 (
@@ -1198,7 +1188,7 @@ def test_model(
             # Create model input list
             model_input_list = [x_t, x_s1, x_st]
 
-            # make predictions and save results in respective predictions matrix ###
+            # make predictions and save results in respective matrix
             predictions[i] = model.predict(model_input_list)
 
     else:
@@ -1217,11 +1207,14 @@ def test_model(
     ###
 
     # convert predictions back from classes to floating point values
-    if HYPER.PROBLEM_TYPE == "classification":
+    if HYPER.PROBLEM_TYPE == 'classification':
     
         predictions = np.argmax(predictions, axis=2)
         predictions = (
-            predictions * raw_data.Y_range / HYPER.REGRESSION_CLASSES + raw_data.Y_min
+            predictions * raw_data.Y_range / (
+                HYPER.REGRESSION_CLASSES 
+                + raw_data.Y_min
+            )
         )
 
     # calculate the testing losses
@@ -1233,7 +1226,7 @@ def test_model(
     # tell us how much testing loss we have
     if not silent:
     
-        print(figtitle + " loss:", testing_loss)
+        print(figtitle + ' loss:', testing_loss)
 
     test_data.predictions = predictions
     test_data.testing_loss = testing_loss
