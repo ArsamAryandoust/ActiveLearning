@@ -56,7 +56,7 @@ class HyperParameter:
     # "cluster-far", "cluster-close", "cluster-avg"
     QUERY_VARIANTS_ACT_LRN = [
         'rnd d_c', 
-        #'min d_c', 
+        'min d_c', 
         'max d_c', 
         'avg d_c'
     ]
@@ -364,7 +364,6 @@ class HyperParameter:
             seed=random_seed
         )
             
-
         if self.METRIC_DISTANCES[0] == rbf_kernel:
             self.DISTANCE_METRIC_ACT_LRN = 'Gaussian'
             
@@ -376,7 +375,6 @@ class HyperParameter:
 
         if self.METHOD_CLUSTERS[0] == KMeans:
             self.CLUSTER_METHOD_ACT_LRN = 'KMeans'
-
         else:
             print(
                 'If you do not own the private data, your experiment will not',

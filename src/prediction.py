@@ -8,6 +8,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 
 class EncodersAndPredictor:
+
     """ Keeps prediction and encoding models together. """
 
     def __init__(
@@ -167,7 +168,7 @@ def predict_with_RF(HYPER, RF_regr, dataset):
 
 def save_prediction_model(HYPER, raw_data, model, model_name):
 
-    """ Saves the passed prediction model when called """
+    """ Saves the passed prediction model when called. """
     
     if HYPER.SAVE_ACT_LRN_MODELS:
     
@@ -890,8 +891,7 @@ def train_model(
 
         def create_batched_data(dataset, batching_steps):
 
-            """
-            """
+            """ """
 
             # build batches of data
             for j in range(batching_steps):
@@ -938,8 +938,7 @@ def train_model(
 
         def create_batched_data(dataset, batching_steps):
 
-            """
-            """
+            """ """
 
             # build batches of data
             for j in range(batching_steps):

@@ -500,7 +500,7 @@ def feature_embedding_AL(
         
         ### Choose candidates to query ###
 
-        if method == 'random':
+        if method == 'PL':
             ### Choose queries according to PL (random) ###
 
             # Create a random batch_index_array
@@ -531,7 +531,7 @@ def feature_embedding_AL(
             
             ### Compute similarity values for each candidate ###
             
-            if method != 'cluster-rnd':
+            if method != 'rnd d_c':
                 ### Calculate distances *tested* ###
 
                 # calculates far points with small similarity value
@@ -542,13 +542,11 @@ def feature_embedding_AL(
                     cand_centers
                 )
                 
-                if method == 'cluster-close':
+                if method == 'min d_c':
                     # reverse order by multiplying with -1 
                     # --> smallest becomes most similar
                     cand_similarity_array = -1 * cand_similarity_array
 
-      
-          
             
             ### Choose data from clusters *tested* ###
             
@@ -573,7 +571,7 @@ def feature_embedding_AL(
                 # if the set is not empty
                 if len(index_array) != 0:
                 
-                    if method == 'cluster-rnd':
+                    if method == 'rnd d_c':
                         # choose one element at random from this index array
                         index_choice = np.random.choice(index_array)
                         
@@ -581,7 +579,7 @@ def feature_embedding_AL(
                         # get similarity values for matching index array
                         similarity_array = cand_similarity_array[index_array]
 
-                        if method == 'cluster-avg':
+                        if method == 'avg d_c':
                             # turn into absolute difference to average similarity
                             similarity_array = abs(
                                 similarity_array - np.mean(similarity_array)
@@ -1384,13 +1382,23 @@ def vis_train_and_val(
 
         for index_var, AL_variable in enumerate(HYPER.QUERY_VARIABLES_ACT_LRN):
 
-            ### Plot random results once per method for benchmark ###
+
+            ### Plot method results for each sort variable ###
+            
+            # plot random forest baseline results
+            ax[index_var, 1].axhline(
+                baseline_loss,
+                color='r',
+                linestyle='--',
+                label='RF',
+            )
+            
+            ### Plot PL results once per method for benchmark ###
             train_loss = random_results.train_loss
             val_loss = random_results.val_loss
 
-            legend_name = ('{} - {} iter- {}s - {:.0%} budget'
+            legend_name = ('PL - {} iter- {}s - {:.0%} budget'
             '- {:.0%} sensors - {:.0%} times - {:.2} loss').format(
-                'random',
                 random_results.iter_usage,
                 random_results.iter_time,
                 random_results.budget_usage,
@@ -1413,15 +1421,7 @@ def vis_train_and_val(
             )
 
 
-            ### Plot method results for each sort variable ###
             
-            # plot random forest baseline results
-            ax[index_var, 1].axhline(
-                baseline_loss,
-                color='r',
-                linestyle='--',
-                label='random forest baseline',
-            )
             
             # get method_result_list of currently iterated prediction type
             method_result_list = var_result_list[index_var]
