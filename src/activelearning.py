@@ -59,16 +59,17 @@ def encode_features(
     silent=True
 ):
 
-    """ Encodes features AL_variable of dataset, or passes labels for AL_variable
-        being Y_(t,s). Also returns the random index array that is created 
-        when CAND_SUBSAMPLE_ACT_LRN is not None and smaller than dataset size. 
+    """ Encodes features AL_variable of dataset, or passes labels for
+    AL_variable being Y_(t,s). Also returns the random index array that is 
+    created when CAND_SUBSAMPLE_ACT_LRN is not None and smaller than dataset 
+    size. 
     """
 
     if not silent:
     
         # tell us what we are doing
         print(
-            "Encoding features into embedded vector spaces for", AL_variable
+            'Encoding features into embedded vector spaces for', AL_variable
         )
 
 
@@ -78,7 +79,7 @@ def encode_features(
     n_datapoints = len(available_index_set_update)
     index_array = list(available_index_set_update)
 
-    # if we chose to consider a subset of these data points, create a random sub-sample
+    # if we chose a subset of these data points, create a random sub-sample
     if (
         HYPER.CAND_SUBSAMPLE_ACT_LRN is not None and 
         HYPER.CAND_SUBSAMPLE_ACT_LRN < n_datapoints
@@ -96,60 +97,48 @@ def encode_features(
     X_st = dataset.X_st[index_array]
     Y = dataset.Y[index_array]
 
-    if HYPER.SPATIAL_FEATURES != "image":
-    
+    if HYPER.SPATIAL_FEATURES != 'image':
         X_s1 = dataset.X_s1[index_array]
 
 
     ### Encode features here ###
 
-    if AL_variable == "X_t":
-    
+    if AL_variable == 'X_t':
         encoding = models.X_t_encoder.predict(X_t)
         
-    elif AL_variable == "X_st":
-    
+    elif AL_variable == 'X_st':
         encoding = models.X_st_encoder.predict(X_st)
         
-    elif AL_variable == "X_s1":
-
-        if HYPER.SPATIAL_FEATURES != "image":
-        
+    elif AL_variable == 'X_s1':
+    
+        if HYPER.SPATIAL_FEATURES != 'image':
             encoding = models.X_s1_encoder.predict(X_s1)
 
         else:
-
-
             ### Encode X_s1 ###
-            
             encoding = np.zeros((n_datapoints, HYPER.ENCODING_NODES_X_s))
             
             # iterate over all datapoints
             for i in range(n_datapoints):
-            
                 building_id = X_s[i][0]
                 
                 # prepare imagery data
                 x_s1 = raw_data.building_imagery_data_list[
                     raw_data.building_imagery_id_list.index(int(building_id))
                 ]
-                
                 x_s1 = np.expand_dims(x_s1, axis=0)
                 
-                # make predictions and save results in respective predictions matrix ###
+                # make predictions and save results in respective matrix
                 encoding[i] = models.X_s1_encoder.predict(x_s1)
 
-    elif AL_variable == "X_joint":
+    elif AL_variable == 'X_joint':
 
-        if HYPER.SPATIAL_FEATURES != "image":
-        
+        if HYPER.SPATIAL_FEATURES != 'image':
             encoding = models.X_joint_encoder.predict([X_t, X_s1, X_st])
 
         else:
 
-
             ### Encode X_joint ###
-            
             encoding = np.zeros((n_datapoints, HYPER.ENCODING_NODES_X_joint))
 
             # iterate over all datapoints
@@ -175,26 +164,23 @@ def encode_features(
                 # Create model input list
                 model_input_list = [x_t, x_s1, x_st]
 
-                # make predictions and save results in respective predictions matrix
+                # make predictions and save results in respective matrix
                 encoding[i] = models.X_joint_encoder.predict(model_input_list)
 
-    elif AL_variable == "X_(t,s)":
+    elif AL_variable == 'X_(t,s)':
 
-        if HYPER.SPATIAL_FEATURES != "image":
-        
+        if HYPER.SPATIAL_FEATURES != 'image':
             encoding = models.prediction_model.predict([X_t, X_s1, X_st])
 
         else:
 
-
             ### Predict Y ###
-            
             encoding = np.zeros((n_datapoints, HYPER.PREDICTION_WINDOW))
 
             # iterate over all datapoints
             for i in range(n_datapoints):
 
-                # Get training data of currently iterated batch #
+                # Get training data of currently iterated batch 
                 x_t = X_t[i]
                 x_st = X_st[i]
                 y = Y[i]
@@ -214,16 +200,13 @@ def encode_features(
                 # Create model input list
                 model_input_list = [x_t, x_s1, x_st]
 
-                # make predictions and save results in respective predictions matrix
+                # make predictions and save results in respective matrix
                 encoding[i] = models.prediction_model.predict(model_input_list)
 
-    elif AL_variable == "Y_(t,s)":
-
+    elif AL_variable == 'Y_(t,s)':
         encoding = Y
-
     else:
-
-        print("query variable not recognized.")
+        print('query variable not recognized.')
 
     return encoding, index_array
 
@@ -240,10 +223,9 @@ def compute_clusters(
     """
 
     if not silent:
-    
         # tell us what we are doing
         print(
-            "Creating clusters in encodings with n_clusters=", cand_batch_size
+            'Creating clusters in encodings with n_clusters=', cand_batch_size
         )
 
     # set the clustering method that we chose
@@ -286,13 +268,12 @@ def compute_similarity(
     silent=True
 ):
 
-    """ Calculates distances to cluster centers. A large value means that encoding
-        is close to its cluster center. A small value means that encoding is far
-        from cluster center.
+    """ Calculates distances to cluster centers. A large value means that 
+    encoding is close to its cluster center. A small value means that encoding 
+    is far from cluster center.
     """
 
     if not silent:
-    
         # tell us what we are doing
         print("Calculating distances" )
 
@@ -323,7 +304,6 @@ def compute_similarity(
         )
         
         if not silent:
-        
             # increment progress bar
             progbar_distance.add(1)
 
@@ -346,15 +326,16 @@ def feature_embedding_AL(
     silent=True,
 ):
 
-    """ Given the prediction models 'models' which are trained on the initially available 
-	    data points 'train_data', it selects a batch of data points to query labels for 
-	    from the pool candidate data points 'candidate_dataset'. Three different methods 
-	    can be chosen through 'method' and set to 'cluster-far', 'cluster-close' and 
-	    'cluster-rnd', each standing for another variant of the algorithm:
+    """ Given the prediction models 'models' which are trained on the initially 
+    available data points 'train_data', it selects a batch of data points to 
+    query labels for from the pool candidate data points 'candidate_dataset'. 
+    Three different methods can be chosen through 'method' and set to 
+    'cluster-far', 'cluster-close' and 'cluster-rnd', each standing for another 
+    variant of the algorithm:
         1. 'cluster-far': maximizes embedding entropy
         2. 'cluster-close': minimized embedding entropy
-        3. 'cluster-rnd': chooses points of random embedding entropy from each cluster 
-        uniformly
+        3. 'cluster-rnd': chooses points of random embedding entropy from each 
+        cluster uniformly
     """
 
 
@@ -394,40 +375,39 @@ def feature_embedding_AL(
     )
 
     if not silent:
-
         # tell us what we are doing
         print(
-            "prediction task:             {}".format(
+            'prediction task:             {}'.format(
                 pred_type
             )
         )
         
         print(
-            "query variable:              {}".format(
+            'query variable:              {}'.format(
                 AL_variable
             )
         )
         
         print(
-            "query variant:               {}".format(
+            'query variant:               {}'.format(
                 method
             )
         )
         
         print(
-            "distance metric:             {}".format(
+            'distance metric:             {}".format(
                 HYPER.DISTANCE_METRIC_ACT_LRN
             )
         )
         
         print(
-            "clustering method:           {}".format(
+            "clustering method:           {}'.format(
                 HYPER.CLUSTER_METHOD_ACT_LRN
             )
         )
         
         print(
-            "data budget:                 {}/{} ({:.0%})".format(
+            'data budget:                 {}/{} ({:.0%})'.format(
                 data_budget, 
                 candidate_dataset.n_datapoints, 
                 HYPER.DATA_BUDGET_ACT_LRN
@@ -435,25 +415,25 @@ def feature_embedding_AL(
         )
         
         print(
-            "used sensors:                {}".format(
+            'used sensors:                {}'.format(
                 n_sensors_0
             )
         )
         
         print(
-            "new sensors to place:        {}".format(
+            'new sensors to place:        {}'.format(
                 n_sensors_new
             )
         )
         
         print(
-            "used streaming times:        {}".format(
+            'used streaming times:        {}'.format(
                 n_times_0
             )
         )
         
         print(
-            "new streaming times to use:  {}".format(
+            'new streaming times to use:  {}'.format(
                 n_times_new
             )
         )
@@ -481,17 +461,16 @@ def feature_embedding_AL(
     # Set starting time of algorithm
     t_start_0 = timeit.default_timer()
 
-    # start Active Learning and stop once data_counter reaches data_budget or iteration_counter 
-    # reaches max iterations
+    # start Active Learning and stop once data_counter reaches data_budget or
+    # iteration_counter reaches max iterations
     while (
         data_counter < data_budget and 
         iteration_counter < HYPER.MAX_ITER_ACT_LRN
     ):
 
         if not silent:
-        
             # mark beginning of iteration
-            print("---" * 3)
+            print('---' * 3)
 
         # Set the start time
         t_start = timeit.default_timer()
@@ -504,7 +483,6 @@ def feature_embedding_AL(
 
         # if exceeding candidate data subsample, adjust batch size
         if HYPER.CAND_SUBSAMPLE_ACT_LRN is not None:
-
             cand_batch_size = min(
                 cand_batch_size, 
                 HYPER.CAND_SUBSAMPLE_ACT_LRN
@@ -522,8 +500,7 @@ def feature_embedding_AL(
         
         ### Choose candidates to query ###
 
-        if method == "random":
-        
+        if method == 'random':
             ### Choose queries according to PL (random) ###
 
             # Create a random batch_index_array
@@ -533,8 +510,6 @@ def feature_embedding_AL(
             )
 
         else:
-
-
             ### Encode data points *tested* ###
 
             candidate_encoded, cand_sub_index = encode_features(
@@ -546,7 +521,6 @@ def feature_embedding_AL(
                 AL_variable,
             )
             
-            
             ### Calculate clusters *tested* ###
 
             cand_labels, cand_centers, n_clusters = compute_clusters(
@@ -555,12 +529,9 @@ def feature_embedding_AL(
                 cand_batch_size
             )
             
-            
             ### Compute similarity values for each candidate ###
             
             if method != 'cluster-rnd':
-            
-            
                 ### Calculate distances *tested* ###
 
                 # calculates far points with small similarity value
@@ -572,7 +543,6 @@ def feature_embedding_AL(
                 )
                 
                 if method == 'cluster-close':
-                    
                     # reverse order by multiplying with -1 
                     # --> smallest becomes most similar
                     cand_similarity_array = -1 * cand_similarity_array
@@ -592,32 +562,30 @@ def feature_embedding_AL(
             # if cluster_batch_counter does not reached cand_batch_size
             cluster_index = 0
             
-            # iterate over all clusters until cluster_batch_counter reaches cand_batch_size
+            # iterate over all clusters until cluster_batch_counter reaches 
+            # cand_batch_size
             while cluster_batch_counter < cand_batch_size:
 
-                # get an array of indices matching to currently iterated cluster ID
+                # get an array of indices matching to currently iterated cluster 
+                # ID
                 index_array = np.where(cand_labels == cluster_index)[0]
 
                 # if the set is not empty
                 if len(index_array) != 0:
                 
-                    if method == "cluster-rnd":
-
+                    if method == 'cluster-rnd':
                         # choose one element at random from this index array
                         index_choice = np.random.choice(index_array)
                         
                     else:
-                        
                         # get similarity values for matching index array
                         similarity_array = cand_similarity_array[index_array]
 
-                        if method == "cluster-avg":
-                        
+                        if method == 'cluster-avg':
                             # turn into absolute difference to average similarity
                             similarity_array = abs(
                                 similarity_array - np.mean(similarity_array)
                             )
-                                
 
                         # choose first/smallest value from similarity_array
                         index_choice = index_array[
@@ -629,20 +597,20 @@ def feature_embedding_AL(
                     # add randomly chosen index to zero array
                     batch_index_list.append(cand_sub_index[index_choice])
 
-                    # setting the cluster ID to -1 excludes data point from considerations 
-		            # in next iterations of this loop
+                    # setting the cluster ID to -1 excludes data point from  
+		                # considerations in next iterations of this loop
                     cand_labels[index_choice] = -1
 
-                    # increment the counter for already added data points to zero array
+                    # increment the counter for already added data points to
+                    # zero array
                     cluster_batch_counter += 1
 
                 # increment the cluster ID index for the next iteration
                 cluster_index += 1
 
-                # set cluster ID index to zero for next iteration if an entire round 
-	            # of iterations did not fill zero array
+                # set cluster ID index to zero for next iteration if an entire 
+	              # round of iterations did not fill zero array
                 if cluster_index >= n_clusters:
-                
                     cluster_index = 0
     
     
@@ -670,8 +638,7 @@ def feature_embedding_AL(
         ### Create new training batch ###
         
         if HYPER.EXTEND_TRAIN_DATA_ACT_LRN:
-        
-            # get the share of training data from the pool of possible testing points
+            # get share of training data from the pool of possible testing points
             X_t_new_train = np.concatenate(
                 (
                     train_data.X_t, 
@@ -712,8 +679,7 @@ def feature_embedding_AL(
                 axis=0
             )
 
-            if HYPER.SPATIAL_FEATURES != "image":
-            
+            if HYPER.SPATIAL_FEATURES != 'image':
                 X_s1_new_train = np.concatenate(
                     (
                         train_data.X_s1, 
@@ -725,31 +691,26 @@ def feature_embedding_AL(
                 )
 
             else:
-            
                 X_s1_new_train = 0
         
         else:
-        
-            # get the share of training data from the pool of possible testing points
+            # get share of training data from pool of possible testing points
             X_t_new_train = candidate_dataset.X_t[batch_index_list]
             X_s_new_train = candidate_dataset.X_s[batch_index_list]
             X_st_new_train = candidate_dataset.X_st[batch_index_list]
             Y_new_train = candidate_dataset.Y[batch_index_list]
 
-            if HYPER.SPATIAL_FEATURES != "image":
-            
+            if HYPER.SPATIAL_FEATURES != 'image':
                 X_s1_new_train = candidate_dataset.X_s1[
                     batch_index_list
                 ]
 
             else:
-            
                 X_s1_new_train = 0
-
 
         ### Update training data for counting sensors and stream times ###
         
-        # Note: intentionally causing duplicate points when RED_CAND_DATA_ACT_LRN=False
+        # causing duplicate points on purpose when RED_CAND_DATA_ACT_LRN=False
         train_data_update_X_t = np.concatenate(
             (
                 train_data.X_t, 
@@ -775,7 +736,6 @@ def feature_embedding_AL(
 
         # update candidate data if chosen so
         if HYPER.RED_CAND_DATA_ACT_LRN:
-
             # update set of available indices
             available_index_set_update = (
                 available_index_set_update - picked_cand_index_set
@@ -786,7 +746,6 @@ def feature_embedding_AL(
 
         # update validation data if chosen so
         if HYPER.UPD_VAL_DATA_ACT_LRN:
-
             X_t_new_val = np.delete(
                 candidate_dataset.X_t, picked_cand_index_list, 0
             )
@@ -803,30 +762,23 @@ def feature_embedding_AL(
                 candidate_dataset.Y, picked_cand_index_list, 0
             )
 
-            if HYPER.SPATIAL_FEATURES != "image":
-            
+            if HYPER.SPATIAL_FEATURES != 'image':
                 X_s1_new_val = np.delete(
                     candidate_dataset.X_s1, picked_cand_index_list, 0
                 )
-                
             else:
-            
                 X_s1_new_val = 0
 
         else:
-
             # create new validation data by copying from initial candidate data
             X_t_new_val = candidate_dataset.X_t
             X_s_new_val = candidate_dataset.X_s
             X_st_new_val = candidate_dataset.X_st
             Y_new_val = candidate_dataset.Y
 
-            if HYPER.SPATIAL_FEATURES != "image":
-            
+            if HYPER.SPATIAL_FEATURES != 'image':
                 X_s1_new_val = candidate_dataset.X_s1
-                
             else:
-            
                 X_s1_new_val = 0
 
 
@@ -864,12 +816,9 @@ def feature_embedding_AL(
 
         # keep track of loss histories
         if data_counter == 0:
-        
             train_hist = train_hist_batch
             val_hist = val_hist_batch
-            
         else:
-        
             train_hist = np.concatenate((train_hist, train_hist_batch))
             val_hist = np.concatenate((val_hist, val_hist_batch))
 
@@ -896,67 +845,59 @@ def feature_embedding_AL(
         # time in seconds that is used in this iteration
         iter_time = math.ceil(t_end - t_start)
 
-        # if there were any new sensors to add, get the share that was eventually added
+        # if there were any new sensors to add, get share that was added
         if n_sensors_new != 0:
-        
             percent_sensors = sensor_counter / n_sensors_new
-            
         else:
-        
             percent_sensors = 0
 
-        # if there were any new streamtimes to add, get the share that was eventually added
+        # if there were any new streamtimes to add, get share that was added
         if n_times_new != 0:
-        
             percent_streamtimes = streamtime_counter / n_times_new
-            
         else:
-        
             percent_streamtimes = 0
 
         if not silent:
-
             # tell us the numbers
             print(
-                "Iteration:                            {}".format(
+                'Iteration:                            {}'.format(
                     iteration_counter
                 )
             )
             
             print(
-                "Time:                                 {}s".format(
+                'Time:                                 {}s'.format(
                     iter_time
                 )
             )
             
             print(
-                "Trained on candidate batch size:      {}".format(
+                'Trained on candidate batch size:      {}'.format(
                     cand_batch_size
                 )
             )
             
             print(
-                "Used streaming times:                 {}/{} ({:.0%})".format(
+                'Used streaming times:                 {}/{} ({:.0%})'.format(
                     streamtime_counter, n_times_new, percent_streamtimes
                 )
             )
             
             print(
-                "Used sensors:                         {}/{} ({:.0%})".format(
+                'Used sensors:                         {}/{} ({:.0%})'.format(
                     sensor_counter, n_sensors_new, percent_sensors
                 )
             )
             
             print(
-                "Used data budget:                     {}/{} ({:.0%})".format(
+                'Used data budget:                     {}/{} ({:.0%})'.format(
                     data_counter, data_budget, cand_data_usage
                 )
             )
 
     # mark end of test for currently iterated sorting array
     if not silent:
-    
-        print("---" * 20)
+        print('---' * 20)
 
     # time in seconds that is eventually used
     iter_time = math.ceil(t_end - t_start_0)
@@ -964,7 +905,7 @@ def feature_embedding_AL(
 
     ### Create test dataset and predict ###
 
-    # create new validation data by deleting the batch of picked data from candidate dataset
+    # create new validation data by deleting batch of picked data from candidates
     X_t_test = np.delete(
         candidate_dataset.X_t, 
         picked_cand_index_list, 
@@ -989,8 +930,7 @@ def feature_embedding_AL(
         0
     )
 
-    if HYPER.SPATIAL_FEATURES != "image":
-    
+    if HYPER.SPATIAL_FEATURES != 'image':
         X_s1_test = np.delete(
             candidate_dataset.X_s1, 
             picked_cand_index_list, 
@@ -998,7 +938,6 @@ def feature_embedding_AL(
         )
         
     else:
-    
         X_s1_test = 0
 
     # create a copy of candidate test data
@@ -1011,7 +950,7 @@ def feature_embedding_AL(
     )
 
     # Predict on candidate datapoints that are not in training data
-    title = "{} {} {}".format(pred_type, AL_variable, method)
+    title = '{} {} {}'.format(pred_type, AL_variable, method)
     
     test_loss = test_model(
         HYPER, 
@@ -1026,11 +965,8 @@ def feature_embedding_AL(
 
     ### Shorten test dataset to random subsample ###
     if HYPER.SAVED_SAMPLES_ACT_LRN >= test_data.n_datapoints:
-    
         rnd_array = np.arange(test_data.n_datapoints)
-    
     else:
-    
         # choose a subsample of the test data for saving
         rnd_array = random.sample(
             list(np.arange(test_data.n_datapoints)), 
@@ -1042,12 +978,9 @@ def feature_embedding_AL(
     X_st_test = X_st_test[rnd_array]
     Y_test = Y_test[rnd_array]
 
-    if HYPER.SPATIAL_FEATURES != "image":
-    
+    if HYPER.SPATIAL_FEATURES != 'image':
         X_s1_test = X_s1_test[rnd_array]
-        
     else:
-    
         X_s1_test = 0
 
     # overwrite test_data with samples you want to save
@@ -1100,29 +1033,27 @@ def test_AL_sequence_importance(
     """ Tests the importance of the query sequence for passed AL results """
 
     if HYPER.TEST_SEQUENCE_IMPORTANCE:
-
         if not silent:
-
             # create a progress bar for training
             progbar_seqimportance = tf.keras.utils.Progbar(results.iter_usage)
 
             # tell us what we are doing
-            print("Testing sequence importance for")
+            print('Testing sequence importance for')
             
             print(
-                "prediction type:                      {}".format(
+                'prediction type:                      {}'.format(
                     pred_type
                 )
             )
             
             print(
-                "query variable:                       {}".format(
+                'query variable:                       {}'.format(
                     AL_variable
                 )
             )
             
             print(
-                "query variant:                        {}".format(
+                'query variant:                        {}'.format(
                     method
                 )
             )
@@ -1149,7 +1080,6 @@ def test_AL_sequence_importance(
 
         # start AL iterations
         for iteration in range(results.iter_usage):
-
 
             ### Set batch size ###
 
@@ -1193,8 +1123,7 @@ def test_AL_sequence_importance(
             ### Create training data ####
             
             if HYPER.EXTEND_TRAIN_DATA_ACT_LRN:
-            
-                # get the share of training data from the pool of possible testing points
+                # get share of training data from pool of possible testing points
                 X_t_new_train = np.concatenate(
                     (
                         train_data.X_t, 
@@ -1224,8 +1153,7 @@ def test_AL_sequence_importance(
                     axis=0
                 )
 
-                if HYPER.SPATIAL_FEATURES != "image":
-                
+                if HYPER.SPATIAL_FEATURES != 'image':
                     X_s1_new_train = np.concatenate(
                         (
                             train_data.X_s1, 
@@ -1233,25 +1161,19 @@ def test_AL_sequence_importance(
                         ), 
                         axis=0
                     )
-
                 else:
-                
                     X_s1_new_train = 0
             
             else:
-
                 # sort all initial candidate data features with the same array
                 X_t_new_train = candidate_dataset.X_t[batch_index_list]
                 X_s_new_train = candidate_dataset.X_s[batch_index_list]
                 X_st_new_train = candidate_dataset.X_st[batch_index_list]
                 Y_new_train = candidate_dataset.Y[batch_index_list]
 
-                if HYPER.SPATIAL_FEATURES != "image":
-                
+                if HYPER.SPATIAL_FEATURES != 'image':
                     X_s1_new_train = candidate_dataset.X_s1[batch_index_list]
-                    
                 else:
-                
                     X_s1_new_train = 0
                     
 
@@ -1259,7 +1181,6 @@ def test_AL_sequence_importance(
 
             # update candidate data if chosen so
             if HYPER.RED_CAND_DATA_ACT_LRN:
-
                 # update set of available indices
                 available_index_set_update = (
                     available_index_set_update - picked_cand_index_set
@@ -1269,7 +1190,6 @@ def test_AL_sequence_importance(
             ### Create (updated) validation data ###
             
             if HYPER.UPD_VAL_DATA_ACT_LRN:
-
                 # create new validation data by deleting the batch 
                 X_t_new_val = np.delete(
                     candidate_dataset.X_t, picked_cand_index_list, 0
@@ -1284,30 +1204,23 @@ def test_AL_sequence_importance(
                     candidate_dataset.Y, picked_cand_index_list, 0
                 )
 
-                if HYPER.SPATIAL_FEATURES != "image":
-                
+                if HYPER.SPATIAL_FEATURES != 'image':
                     X_s1_new_val = np.delete(
                         candidate_dataset.X_s1, picked_cand_index_list, 0
                     )
-                    
                 else:
-                
                     X_s1_new_val = 0
 
             else:
-
                 # create new validation data by copying initial candidates
                 X_t_new_val = candidate_dataset.X_t
                 X_s_new_val = candidate_dataset.X_s
                 X_st_new_val = candidate_dataset.X_st
                 Y_new_val = candidate_dataset.Y
 
-                if HYPER.SPATIAL_FEATURES != "image":
-                
+                if HYPER.SPATIAL_FEATURES != 'image':
                     X_s1_new_val = candidate_dataset.X_s1
-                    
                 else:
-                
                     X_s1_new_val = 0
 
 
@@ -1322,8 +1235,8 @@ def test_AL_sequence_importance(
                 Y_new_train
             )
 
-            # bundle updated data points as Dataset object for validation. this avoids unwanted 
-	        # shuffling
+            # bundle updated data points as Dataset object for validation. This 
+            # avoids unwanted shuffling
             new_val_data = Dataset(
                 X_t_new_val, 
                 X_s_new_val, 
@@ -1346,24 +1259,21 @@ def test_AL_sequence_importance(
 
             # keep track of loss histories
             if iteration == 0:
-            
                 train_hist = train_hist_batch
                 val_hist = val_hist_batch
-                
             else:
-            
                 train_hist = np.concatenate((train_hist, train_hist_batch))
                 val_hist = np.concatenate((val_hist, val_hist_batch))
 
             if not silent:
-
                 # increment progress bar
                 progbar_seqimportance.add(1)
 
 
         ### Create test dataset and predict ###
 
-        # create new validation data by deleting the batch of picked data from candidate dataset
+        # create new validation data by deleting the batch of picked data from 
+        # candidate dataset
         X_t_test = np.delete(
             candidate_dataset.X_t, 
             picked_cand_index_list, 
@@ -1389,15 +1299,12 @@ def test_AL_sequence_importance(
         )
 
         if HYPER.SPATIAL_FEATURES != "image":
-        
             X_s1_test = np.delete(
                 candidate_dataset.X_s1, 
                 picked_cand_index_list, 
                 0
             )
-            
         else:
-        
             X_s1_test = 0
 
         # create a copy of candidate test data
@@ -1410,7 +1317,7 @@ def test_AL_sequence_importance(
         )
 
         # Predict on candidate datapoints that are not in training data
-        title = "{} {} {}".format(pred_type, AL_variable, method)
+        title = '{} {} {}'.format(pred_type, AL_variable, method)
         
         test_loss = test_model(
             HYPER, 
@@ -1427,9 +1334,8 @@ def test_AL_sequence_importance(
         results.seqimportance_test_loss = test_loss
 
         if not silent: 
-            
             # Indicate termination of execute
-            print("---" * 20)
+            print('---' * 20)
 
         return results
 
@@ -1441,14 +1347,14 @@ def vis_train_and_val(
     baseline_results
 ):
 
-    """ Plots training and validation loss histories of each method, sort variable and 
-	    prediction type against their passive learning benchmark scenarios and the random 
-	    forest baseline predictor. You can use between the plotting options 'separate', 
-	    'both' and 'joint':
-        1. 'separate': plots the performance of each method separately against the passive 
-	    learning case
-        2. 'joint': plots the performance of all methods jointly against the passive learning 
-	    benchmark
+    """ Plots training and validation loss histories of each method, sort 
+    variable and prediction type against their passive learning benchmark 
+    scenarios and the random forest baseline predictor. You can use between the 
+    plotting options 'separate', 'both' and 'joint':
+        1. 'separate': plots the performance of each method separately against 
+        the passive learning case
+        2. 'joint': plots the performance of all methods jointly against the 
+        passive learning benchmark
         3. 'both': plots both cases of 'separate' and 'joint'
     """
 
@@ -1482,9 +1388,9 @@ def vis_train_and_val(
             train_loss = random_results.train_loss
             val_loss = random_results.val_loss
 
-            legend_name = ("{} - {} iter- {}s - {:.0%} budget - {:.0%} sensors - {:.0%}"
-            " times - {:.2} loss").format(
-                "random",
+            legend_name = ('{} - {} iter- {}s - {:.0%} budget'
+            '- {:.0%} sensors - {:.0%} times - {:.2} loss').format(
+                'random',
                 random_results.iter_usage,
                 random_results.iter_time,
                 random_results.budget_usage,
@@ -1496,13 +1402,13 @@ def vis_train_and_val(
             ax[index_var, 0].plot(
                 train_loss, 
                 color='b', 
-                linestyle="--", 
+                linestyle='--', 
                 label=legend_name
             )
             ax[index_var, 1].plot(
                 val_loss, 
                 color='b', 
-                linestyle="--", 
+                linestyle='--', 
                 label=legend_name
             )
 
@@ -1512,9 +1418,9 @@ def vis_train_and_val(
             # plot random forest baseline results
             ax[index_var, 1].axhline(
                 baseline_loss,
-                color="r",
-                linestyle="--",
-                label="random forest baseline",
+                color='r',
+                linestyle='--',
+                label='random forest baseline',
             )
             
             # get method_result_list of currently iterated prediction type
@@ -1527,8 +1433,8 @@ def vis_train_and_val(
                 train_loss = result.train_loss
                 val_loss = result.val_loss
 
-                legend_name = ("{}- {} iter- {}s- {:.0%} budget- {:.0%} sensors- {:.0%}"
-		        " times - {:.2} loss").format(
+                legend_name = ('{}- {} iter- {}s- {:.0%} budget- {:.0%}'
+                'sensors- {:.0%} times - {:.2} loss').format(
                     method,
                     result.iter_usage,
                     result.iter_time,
@@ -1549,31 +1455,29 @@ def vis_train_and_val(
                     label=legend_name
                 )
 
-            
-
             sub_title = (
                 pred_type 
-                + " predictions - query variable " 
+                + ' predictions - query variable ' 
                 + AL_variable
             )
 
-            ax[index_var, 0].set_title(sub_title + " training loss")
-            ax[index_var, 1].set_title(sub_title + " validation loss")
+            ax[index_var, 0].set_title(sub_title + ' training loss')
+            ax[index_var, 1].set_title(sub_title + ' validation loss')
 
-            ax[index_var, 0].set_ylabel("loss")
-            ax[index_var, 1].set_ylabel("loss")
+            ax[index_var, 0].set_ylabel('loss')
+            ax[index_var, 1].set_ylabel('loss')
 
-            ax[index_var, 0].set_xlabel("epoch")
-            ax[index_var, 1].set_xlabel("epoch")
+            ax[index_var, 0].set_xlabel('epoch')
+            ax[index_var, 1].set_xlabel('epoch')
 
-            ax[index_var, 0].legend(loc="best", frameon=False)
-            ax[index_var, 1].legend(loc="best", frameon=False)
+            ax[index_var, 0].legend(loc='best', frameon=False)
+            ax[index_var, 1].legend(loc='best', frameon=False)
 
 
 def vis_seq_importance(HYPER, result_list):
 
-    """ Plots the training and validation losses for AL query sequence vs. a random 
-        query sequence of the same data points that were queried using AL. 
+    """ Plots the training and validation losses for AL query sequence vs. 
+    a random query sequence of the same data points that were queried using AL. 
     """
 
     if HYPER.TEST_SEQUENCE_IMPORTANCE:
@@ -1585,7 +1489,7 @@ def vis_seq_importance(HYPER, result_list):
         
         # create list of custom lines for custom legend
         custom_lines = [
-            Line2D([0], [0], color=cmap(0.9), linestyle="--"),
+            Line2D([0], [0], color=cmap(0.9), linestyle='--'),
             Line2D([0], [0], color=cmap(0.9))
         ]
         
@@ -1630,19 +1534,19 @@ def vis_seq_importance(HYPER, result_list):
 
                     ax[index_var, 0].plot(
                         train_loss_rnd_sequence, 
-                        linestyle="--", 
+                        linestyle='--', 
                         color=color_list[index_method]
                     )
                     ax[index_var, 1].plot(
                         val_loss_rnd_sequence, 
-                        linestyle="--", 
+                        linestyle='--', 
                         color=color_list[index_method]
                     )
 
                 sub_title = (
-                    "query sequence importance for "                
+                    'query sequence importance for '               
                     + pred_type 
-                    + " predictions - query variable " 
+                    + ' predictions - query variable '
                     + AL_variable
                 )
 
@@ -1661,7 +1565,7 @@ def vis_seq_importance(HYPER, result_list):
                         'AL data - random sequence', 
                         'AL data - AL sequence'
                     ], 
-                    loc="best", 
+                    loc='best', 
                     frameon=False
                 )
                 ax[index_var, 1].legend(
@@ -1670,15 +1574,14 @@ def vis_seq_importance(HYPER, result_list):
                         'AL data - random sequence', 
                         'AL data - AL sequence'
                     ], 
-                    loc="best", 
+                    loc='best', 
                     frameon=False
                 )
 
 
 def save_act_lrn_models(HYPER, raw_data, result_list, random_result_list):
 
-    """ Saves the actively trained prediction models.
-    """
+    """ Saves the actively trained prediction models. """
 
     if HYPER.SAVE_ACT_LRN_MODELS:
 
@@ -1696,7 +1599,6 @@ def save_act_lrn_models(HYPER, raw_data, result_list, random_result_list):
             saving_path = raw_data.path_to_AL_models + pred_type + '/'
         
             if not os.path.exists(saving_path):
-                
                 os.mkdir(saving_path)
                 
             path_to_model = saving_path + 'random.h5'
@@ -1721,9 +1623,9 @@ def save_act_lrn_models(HYPER, raw_data, result_list, random_result_list):
                     path_to_model = (
                         saving_path 
                         + AL_variable 
-                        + "_" 
+                        + '_'
                         + method 
-                        + ".h5"
+                        + '.h5'
                     )
 
                     # save currently iterated model
@@ -1738,23 +1640,22 @@ def save_act_lrn_results(
     random_result_list
 ):
 
-    """ Saves the active learning results, including number of iterations used, time used 
-	    for each iteration, share of data budget used, share of sensor budget used, share 
-	    of stream time budget used, testing loss baseline loss and passive learning benchmark 
-	    histories, validation histories and training histories.
+    """ Saves the active learning results, including number of iterations used, 
+    time used for each iteration, share of data budget used, share of sensor 
+    budget used, share of stream time budget used, testing loss baseline loss 
+    and passive learning benchmark histories, validation histories and training 
+    histories.
     """
 
     if HYPER.SAVE_ACT_LRN_RESULTS:
 
         for pred_index, pred_type in enumerate(HYPER.PRED_LIST_ACT_LRN):
-
             saving_path = raw_data.path_to_AL_results + pred_type + '/'
             
             if not os.path.exists(saving_path):
-                
                 os.mkdir(saving_path)
                 
-            path_to_results_file = saving_path + "results.csv"
+            path_to_results_file = saving_path + 'results.csv'
             
             # create empty DataFrame
             result_df = pd.DataFrame()
@@ -1779,8 +1680,8 @@ def save_act_lrn_results(
             train_loss = random_results.train_loss
             val_loss = random_results.val_loss
 
-            col_name_train = "{} {} {} train".format(pred_type, None, "random")
-            col_name_val = "{} {} {} val".format(pred_type, None, "random")
+            col_name_train = '{} {} {} train'.format(pred_type, None, 'random')
+            col_name_val = '{} {} {} val'.format(pred_type, None, 'random')
 
             meta_entry = np.array(
                 [
@@ -1804,12 +1705,11 @@ def save_act_lrn_results(
             )
             
             if HYPER.TEST_SEQUENCE_IMPORTANCE:
-                
                 seqimportance_df = pd.DataFrame()
                 df_list_seqimportance = []
                 path_to_seqimportance_file = (
                     saving_path 
-                    + "sequence_importance.csv"
+                    + 'sequence_importance.csv'
                 )
 
             for index_var, AL_variable in enumerate(HYPER.QUERY_VARIABLES_ACT_LRN):
@@ -1838,12 +1738,12 @@ def save_act_lrn_results(
                     train_loss = result.train_loss
                     val_loss = result.val_loss
 
-                    col_name_train = "{} {} {} train".format(
+                    col_name_train = '{} {} {} train'.format(
                         pred_type, 
                         AL_variable, 
                         method
                     )
-                    col_name_val = "{} {} {} val".format(
+                    col_name_val = '{} {} {} val'.format(
                         pred_type, 
                         AL_variable, 
                         method
@@ -1874,7 +1774,6 @@ def save_act_lrn_results(
                     
                     
                     if HYPER.TEST_SEQUENCE_IMPORTANCE:
-                    
                         train_loss_seqimportance = (
                             result.seqimportance_train_loss
                         )
@@ -1923,17 +1822,16 @@ def save_act_lrn_results(
 
             # create the index column
             df_index = [
-                "n_iterations",
-                "t_iterations",
-                "budget_usage",
-                "sensor_usage",
-                "streamtime_usage",
-                "baseline_loss",
-                "test_loss",
+                'n_iterations',
+                't_iterations',
+                'budget_usage',
+                'sensor_usage',
+                'streamtime_usage',
+                'baseline_loss',
+                'test_loss',
             ]
             
             for i in range(len(result_df) - len(df_index)):
-            
                 df_index.append(i)
 
             # set the index column
@@ -1943,15 +1841,12 @@ def save_act_lrn_results(
             result_df.to_csv(path_to_results_file)
             
             if HYPER.TEST_SEQUENCE_IMPORTANCE:
-            
                 seqimportance_df = pd.concat(df_list_seqimportance, axis=1)
-                
                 df_index = [
-                    "test_loss",
+                    'test_loss',
                 ]
                 
                 for i in range(len(seqimportance_df) - len(df_index)):
-            
                     df_index.append(i)
                     
                 seqimportance_df.index = df_index
@@ -1960,20 +1855,19 @@ def save_act_lrn_results(
 
 def save_hyper_params(HYPER, raw_data):
 
-    """ Saves all hyper parameter values which are used for calculating these results.
+    """ Saves all hyper parameter values which are used for calculating these 
+    results.
     """
 
     if HYPER.SAVE_HYPER_PARAMS:
 
         for pred_index, pred_type in enumerate(HYPER.PRED_LIST_ACT_LRN):
-        
             saving_path = raw_data.path_to_AL_results + pred_type + '/'
             
             if not os.path.exists(saving_path):
-                
                 os.mkdir(saving_path)
                 
-            saving_path += "hyper.csv"
+            saving_path += 'hyper.csv'
 
             # create empty DataFrame
             hyper_df = pd.DataFrame()
@@ -1981,309 +1875,308 @@ def save_hyper_params(HYPER, raw_data):
             
             # general parameters
             df_list.append(
-                pd.DataFrame({"public_access": pd.Series(HYPER.PUBLIC_ACCESS)})
+                pd.DataFrame({'public_access': pd.Series(HYPER.PUBLIC_ACCESS)})
             )
             df_list.append(
-                pd.DataFrame({"test_sequence_importance": pd.Series(
+                pd.DataFrame({'test_sequence_importance': pd.Series(
                     HYPER.TEST_SEQUENCE_IMPORTANCE
                 )})
             )
             df_list.append(
-                pd.DataFrame({"save_act_lrn_results": pd.Series(
+                pd.DataFrame({'save_act_lrn_results': pd.Series(
                     HYPER.SAVE_ACT_LRN_RESULTS
                 )})
             )
             df_list.append(
-                pd.DataFrame({"save_hyper_params": pd.Series(
+                pd.DataFrame({'save_hyper_params': pd.Series(
                     HYPER.SAVE_HYPER_PARAMS
                 )})
             )
             df_list.append(
-                pd.DataFrame({"save_act_lrn_models": pd.Series(
+                pd.DataFrame({'save_act_lrn_models': pd.Series(
                     HYPER.SAVE_ACT_LRN_MODELS
                 )})
             )
             df_list.append(
-                pd.DataFrame({"save_act_lrn_test_sample": pd.Series(
+                pd.DataFrame({'save_act_lrn_test_sample': pd.Series(
                     HYPER.SAVE_ACT_LRN_TEST_SAMPLE
                 )})
             )
             
-            
             # active learning algorithm parameters
             df_list.append(
-                pd.DataFrame({"pred_list_act_lrn": pd.Series(
+                pd.DataFrame({'pred_list_act_lrn': pd.Series(
                     HYPER.PRED_LIST_ACT_LRN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"query_variants_act_lrn": pd.Series(
+                pd.DataFrame({'query_variants_act_lrn': pd.Series(
                     HYPER.QUERY_VARIANTS_ACT_LRN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"query_variables_act_lrn": pd.Series(
+                pd.DataFrame({'query_variables_act_lrn': pd.Series(
                     HYPER.QUERY_VARIABLES_ACT_LRN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"upd_val_data_act_lrn": pd.Series(
+                pd.DataFrame({'upd_val_data_act_lrn': pd.Series(
                     HYPER.UPD_VAL_DATA_ACT_LRN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"red_cand_data_act_lrn": pd.Series(
+                pd.DataFrame({'red_cand_data_act_lrn': pd.Series(
                     HYPER.RED_CAND_DATA_ACT_LRN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"max_iter_act_lrn": pd.Series(
+                pd.DataFrame({'max_iter_act_lrn': pd.Series(
                     HYPER.MAX_ITER_ACT_LRN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"data_budget_act_lrn": pd.Series(
+                pd.DataFrame({'data_budget_act_lrn': pd.Series(
                     HYPER.DATA_BUDGET_ACT_LRN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"cand_batch_size_act_lrn": pd.Series(
+                pd.DataFrame({'cand_batch_size_act_lrn': pd.Series(
                     HYPER.CAND_BATCH_SIZE_ACT_LRN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"epochs_act_lrn": pd.Series(
+                pd.DataFrame({'epochs_act_lrn': pd.Series(
                     HYPER.EPOCHS_ACT_LRN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"patience_act_lrn": pd.Series(
+                pd.DataFrame({'patience_act_lrn': pd.Series(
                     HYPER.PATIENCE_ACT_LRN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"distance_metric_act_lrn": pd.Series(
+                pd.DataFrame({'distance_metric_act_lrn': pd.Series(
                     HYPER.DISTANCE_METRIC_ACT_LRN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"cluster_ethod_act_lrn": pd.Series(
+                pd.DataFrame({'cluster_ethod_act_lrn': pd.Series(
                     HYPER.CLUSTER_METHOD_ACT_LRN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"cand_subsample_act_lrn": pd.Series(
+                pd.DataFrame({'cand_subsample_act_lrn': pd.Series(
                     HYPER.CAND_SUBSAMPLE_ACT_LRN
                 )})
             )
 
             # problem setup parameters
             df_list.append(
-                pd.DataFrame({"problem_type": pd.Series(
+                pd.DataFrame({'problem_type': pd.Series(
                     HYPER.PROBLEM_TYPE
                 )})
             )
             df_list.append(
-                pd.DataFrame({"regression_classes": pd.Series(
+                pd.DataFrame({'regression_classes': pd.Series(
                     HYPER.REGRESSION_CLASSES
                 )})
             )
             df_list.append(
-                pd.DataFrame({"labels": pd.Series(
+                pd.DataFrame({'labels': pd.Series(
                     HYPER.LABELS
                 )})
             )
             df_list.append(
-                pd.DataFrame({"profile_years": pd.Series(
+                pd.DataFrame({'profile_years': pd.Series(
                     HYPER.PROFILE_YEARS
                 )})
             )
             df_list.append(
-                pd.DataFrame({"profiles_per_year": pd.Series(
+                pd.DataFrame({'profiles_per_year': pd.Series(
                     HYPER.PROFILES_PER_YEAR
                 )})
             )
             df_list.append(
-                pd.DataFrame({"points_per_profile": pd.Series(
+                pd.DataFrame({'points_per_profile': pd.Series(
                     HYPER.POINTS_PER_PROFILE
                 )})
             )
             df_list.append(
-                pd.DataFrame({"prediction_window": pd.Series(
+                pd.DataFrame({'prediction_window': pd.Series(
                     HYPER.PREDICTION_WINDOW
                 )})
             )
             df_list.append(
-                pd.DataFrame({"train_split": pd.Series(
+                pd.DataFrame({'train_split': pd.Series(
                     HYPER.TRAIN_SPLIT
                 )})
             )
             df_list.append(
-                pd.DataFrame({"test_split": pd.Series(
+                pd.DataFrame({'test_split': pd.Series(
                     HYPER.TEST_SPLIT
                 )})
             )
             df_list.append(
-                pd.DataFrame({"split_intervals": pd.Series(
+                pd.DataFrame({'split_intervals': pd.Series(
                     HYPER.SPLIT_INTERAVALS
                 )})
             )
 
             # training and prediction model parameters
             df_list.append(
-                pd.DataFrame({"epochs": pd.Series(
+                pd.DataFrame({'epochs': pd.Series(
                     HYPER.EPOCHS
                 )})
             )
             df_list.append(
-                pd.DataFrame({"patience": pd.Series(
+                pd.DataFrame({'patience': pd.Series(
                     HYPER.PATIENCE
                 )})
             )
             df_list.append(
-                pd.DataFrame({"batch_size": pd.Series(
+                pd.DataFrame({'batch_size': pd.Series(
                     HYPER.BATCH_SIZE
                 )})
             )
             df_list.append(
-                pd.DataFrame({"encoder_layers": pd.Series(
+                pd.DataFrame({'encoder_layers': pd.Series(
                     HYPER.ENCODER_LAYERS
                 )})
             )
             df_list.append(
-                pd.DataFrame({"encoding_nodes_x_t": pd.Series(
+                pd.DataFrame({'encoding_nodes_x_t': pd.Series(
                     HYPER.ENCODING_NODES_X_t
                 )})
             )
             df_list.append(
-                pd.DataFrame({"encoding_nodes_x_s": pd.Series(
+                pd.DataFrame({'encoding_nodes_x_s': pd.Series(
                     HYPER.ENCODING_NODES_X_s
                 )})
             )
             df_list.append(
-                pd.DataFrame({"encoding_nodes_x_st": pd.Series(
+                pd.DataFrame({'encoding_nodes_x_st': pd.Series(
                     HYPER.ENCODING_NODES_X_st
                 )})
             )
             df_list.append(
-                pd.DataFrame({"encoding_nodes_x_joint": pd.Series(
+                pd.DataFrame({'encoding_nodes_x_joint': pd.Series(
                     HYPER.ENCODING_NODES_X_joint
                 )})
             )
             df_list.append(
-                pd.DataFrame({"encoding_activation": pd.Series(
+                pd.DataFrame({'encoding_activation': pd.Series(
                     HYPER.ENCODING_ACTIVATION
                 )})
             )
             df_list.append(
-                pd.DataFrame({"network_layers": pd.Series(
+                pd.DataFrame({'network_layers': pd.Series(
                     HYPER.NETWORK_LAYERS
                 )})
             )
             df_list.append(
-                pd.DataFrame({"nodes_per_layer_dense": pd.Series(
+                pd.DataFrame({'nodes_per_layer_dense': pd.Series(
                     HYPER.NODES_PER_LAYER_DENSE
                 )})
             )
             df_list.append(
-                pd.DataFrame({"filters_per_layer_cnn": pd.Series(
+                pd.DataFrame({'filters_per_layer_cnn': pd.Series(
                     HYPER.FILTERS_PER_LAYER_CNN
                 )})
             )
             df_list.append(
-                pd.DataFrame({"states_per_layer_lstm": pd.Series(
+                pd.DataFrame({'states_per_layer_lstm': pd.Series(
                     HYPER.STATES_PER_LAYER_LSTM
                 )})
             )
             df_list.append(
-                pd.DataFrame({"layer_type_x_st": pd.Series(
+                pd.DataFrame({'layer_type_x_st': pd.Series(
                     HYPER.LAYER_TYPE_X_ST
                 )})
             )
             df_list.append(
-                pd.DataFrame({"dense_activation": pd.Series(
+                pd.DataFrame({'dense_activation': pd.Series(
                     HYPER.DENSE_ACTIVATION
                 )})
             )
             df_list.append(
-                pd.DataFrame({"cnn_activation": pd.Series(
+                pd.DataFrame({'cnn_activation': pd.Series(
                     HYPER.CNN_ACTIVATION
                 )})
             )
             df_list.append(
-                pd.DataFrame({"lstm_activation": pd.Series(
+                pd.DataFrame({'lstm_activation': pd.Series(
                     HYPER.LSTM_ACTIVATION
                 )})
             )
             df_list.append(
-                pd.DataFrame({"initialization_method": pd.Series(
+                pd.DataFrame({'initialization_method': pd.Series(
                     HYPER.INITIALIZATION_METHOD
                 )})
             )
             df_list.append(
-                pd.DataFrame({"initialization_method_lstm": pd.Series(
+                pd.DataFrame({'initialization_method_lstm': pd.Series(
                     HYPER.INITIALIZATION_METHOD_LSTM
                 )})
             )
             df_list.append(
-                pd.DataFrame({"batch_normalization": pd.Series(
+                pd.DataFrame({'batch_normalization': pd.Series(
                     HYPER.BATCH_NORMALIZATION
                 )})
             )
             df_list.append(
-                pd.DataFrame({"regularizer": pd.Series(
+                pd.DataFrame({'regularizer': pd.Series(
                     HYPER.REGULARIZER
                 )})
             )
 
             # feature parameters
             df_list.append(
-                pd.DataFrame({"timestamp_data": pd.Series(
+                pd.DataFrame({'timestamp_data': pd.Series(
                     HYPER.TIMESTAMP_DATA
                 )})
             )
             df_list.append(
-                pd.DataFrame({"time_encoding": pd.Series(
+                pd.DataFrame({'time_encoding': pd.Series(
                     HYPER.TIME_ENCODING
                 )})
             )
             df_list.append(
-                pd.DataFrame({"spatial_features": pd.Series(
+                pd.DataFrame({'spatial_features': pd.Series(
                     HYPER.SPATIAL_FEATURES
                 )})
             )
             df_list.append(
-                pd.DataFrame({"histo_bins": pd.Series(
+                pd.DataFrame({'histo_bins': pd.Series(
                     HYPER.HISTO_BINS
                 )})
             )
             df_list.append(
-                pd.DataFrame({"grey_scale": pd.Series(
+                pd.DataFrame({'grey_scale': pd.Series(
                     HYPER.GREY_SCALE
                 )})
             )
             df_list.append(
-                pd.DataFrame({"down_scale_building_images": pd.Series(
+                pd.DataFrame({'down_scale_building_images': pd.Series(
                     HYPER.DOWN_SCALE_BUILDING_IMAGES
                 )})
             )
             df_list.append(
-                pd.DataFrame({"meteo_types": pd.Series(
+                pd.DataFrame({'meteo_types': pd.Series(
                     HYPER.METEO_TYPES
                 )})
             )
             df_list.append(
-                pd.DataFrame({"history_window_meteo": pd.Series(
+                pd.DataFrame({'history_window_meteo': pd.Series(
                     HYPER.HISTORY_WINDOW_METEO
                 )})
             )
             df_list.append(
-                pd.DataFrame({"normalization": pd.Series(
+                pd.DataFrame({'normalization': pd.Series(
                     HYPER.NORMALIZATION
                 )})
             )
             df_list.append(
-                pd.DataFrame({"standardization": pd.Series(
+                pd.DataFrame({'standardization': pd.Series(
                     HYPER.STANDARDIZATION
                 )})
             )
@@ -2301,24 +2194,19 @@ def save_act_lrn_test_sample(
     result_list, 
     random_result_list):
 
-    """ Saves a random sample of 1,000 data points from the candidate data pool which were 
-	    not seen by the actively trained prediction models.
+    """ Saves a random sample of 1,000 data points from the candidate data pool 
+    which were not seen by the actively trained prediction models.
     """
 
     if HYPER.SAVE_ACT_LRN_TEST_SAMPLE:
-
-        if HYPER.SPATIAL_FEATURES == "image":
-        
+        if HYPER.SPATIAL_FEATURES == 'image':
             print('Feature not available')
-            
             return
 
         for index_pred, pred_type in enumerate(HYPER.PRED_LIST_ACT_LRN):
-        
             saving_path = raw_data.path_to_AL_test_samples + pred_type + '/'
             
             if not os.path.exists(saving_path):
-                
                 os.mkdir(saving_path)
 
             # get method_result_list of currently iterated prediction type
@@ -2333,26 +2221,20 @@ def save_act_lrn_test_sample(
             X_st = test_data.X_st
             Y = test_data.Y
             
-            if HYPER.SPATIAL_FEATURES != "image":
-            
+            if HYPER.SPATIAL_FEATURES != 'image':
                 X_s1 = test_data.X_s1
-                
             else:
-            
                 X_s1 = 0
 
-            saving_list = ["X_t", "X_s", "X_s1", "X_st", "Y"]
-            
+            saving_list = ['X_t', 'X_s', 'X_s1', 'X_st', 'Y']
             for var in saving_list:
-            
                 path_to_var = (
-                    saving_path + "random_" + var
+                    saving_path + 'random_' + var
                 )
-                command = "np.save(path_to_var, " + var + ")"
+                command = 'np.save(path_to_var, ' + var + ')'
                 exec(command)
 
             for index_var, AL_variable in enumerate(HYPER.QUERY_VARIABLES_ACT_LRN):
-
                 # get variable result list
                 method_result_list = var_result_list[index_var]
 
@@ -2368,25 +2250,20 @@ def save_act_lrn_test_sample(
                     X_st = test_data.X_st
                     Y = test_data.Y
                     
-                    if HYPER.SPATIAL_FEATURES != "image":
-                    
+                    if HYPER.SPATIAL_FEATURES != 'image':
                         X_s1 = test_data.X_s1
-                        
                     else:
-                    
                         X_s1 = 0
 
-                    saving_list = ["X_t", "X_s", "X_s1", "X_st", "Y"]
-                    
+                    saving_list = ['X_t', 'X_s', 'X_s1', 'X_st', 'Y']
                     for var in saving_list:
-                    
                         path_to_var = (
                             saving_path
                             + AL_variable
-                            + "_"
+                            + '_'
                             + method
-                            + "_"
+                            + '_'
                             + var
                         )
-                        command = "np.save(path_to_var, " + var + ")"
+                        command = 'np.save(path_to_var, ' + var + ')'
                         exec(command)
