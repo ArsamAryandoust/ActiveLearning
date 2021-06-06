@@ -395,13 +395,13 @@ def feature_embedding_AL(
         )
         
         print(
-            'distance metric:             {}".format(
+            'distance metric:             {}'.format(
                 HYPER.DISTANCE_METRIC_ACT_LRN
             )
         )
         
         print(
-            "clustering method:           {}'.format(
+            'clustering method:           {}'.format(
                 HYPER.CLUSTER_METHOD_ACT_LRN
             )
         )
