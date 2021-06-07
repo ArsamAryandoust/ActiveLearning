@@ -1,7 +1,7 @@
-FROM tensorflow/tensorflow:nightly-gpu
+FROM tensorflow/tensorflow:2.5.0-gpu
 
-RUN apt update
-RUN apt upgrade -y
+# RUN apt update
+# RUN apt upgrade -y
 
 RUN pip install xlrd
 RUN pip install Pillow

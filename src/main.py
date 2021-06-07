@@ -62,10 +62,10 @@ if seed is not None:
         seed=seed
     )
     variance_scaling = tf.keras.initializers.VarianceScaling(
-                       scale=1.0, 
-                       mode='fan_in', 
-                       distribution='truncated_normal', 
-                       seed=seed
+        scale=1.0, 
+        mode='fan_in', 
+        distribution='truncated_normal', 
+        seed=seed
     )
 
 # class instance that contains all our hyperparameters
@@ -195,6 +195,7 @@ train_l = mean_loss_train(
         train_pred
     )
 ).numpy()
+
 mean_loss_test.reset_states()
 val_l = mean_loss_test(
     loss_function(
@@ -202,6 +203,7 @@ val_l = mean_loss_test(
         val_pred
     )
 ).numpy()
+
 mean_loss_test.reset_states()
 test_l_spatial = mean_loss_test(
     loss_function(
@@ -209,6 +211,7 @@ test_l_spatial = mean_loss_test(
         spatial_test_pred
     )
 ).numpy()
+
 mean_loss_test.reset_states()
 test_l_temporal = mean_loss_test(
     loss_function(
@@ -216,6 +219,7 @@ test_l_temporal = mean_loss_test(
         temporal_test_pred
     )
 ).numpy()
+
 mean_loss_test.reset_states()
 test_l_spatemp = mean_loss_test(
     loss_function(
