@@ -807,6 +807,9 @@ def feature_embedding_AL(
             optimizer,
             mean_loss,
         )
+        
+        print(train_hist_batch)
+        print(val_hist_batch)
 
         # keep track of loss histories
         if data_counter == 0:
@@ -1029,7 +1032,7 @@ def test_AL_sequence_importance(
     if HYPER.TEST_SEQUENCE_IMPORTANCE:
         if not silent:
             # create a progress bar for training
-            progbar_seqimportance = tf.keras.utils.Progbar(results.iter_usage)
+            progbar_seqimportance = tf.keras.utils.Progbar(AL_results.iter_usage)
 
             # tell us what we are doing
             print('Testing sequence importance for')
@@ -1331,7 +1334,7 @@ def test_AL_sequence_importance(
             # Indicate termination of execute
             print('---' * 20)
 
-        return results
+        return AL_results
 
 
 def vis_train_and_val(
@@ -1374,7 +1377,7 @@ def vis_train_and_val(
         PL_results = PL_result_list[index_pred]
 
         # get baseline results
-        baseline_loss = baseline_results[pred_type]
+        RF_loss = RF_results[pred_type]
 
         for index_var, AL_variable in enumerate(HYPER.QUERY_VARIABLES_ACT_LRN):
 
@@ -1383,7 +1386,7 @@ def vis_train_and_val(
             
             # plot random forest baseline results
             ax[index_var, 1].axhline(
-                baseline_loss,
+                RF_loss,
                 color='r',
                 linestyle='--',
                 label='RF baseline',
@@ -1776,13 +1779,13 @@ def save_act_lrn_results(
                     
                     if HYPER.TEST_SEQUENCE_IMPORTANCE:
                         train_loss_seqimportance = (
-                            result.seqimportance_train_loss
+                            AL_result.seqimportance_train_loss
                         )
                         val_loss_seqimportance = (
-                            result.seqimportance_val_loss
+                            AL_result.seqimportance_val_loss
                         )
                         test_loss_seqimportance = (
-                            result.seqimportance_test_loss
+                            AL_result.seqimportance_test_loss
                         )
                         meta_entry = np.array(
                             [
@@ -1828,7 +1831,7 @@ def save_act_lrn_results(
                 'budget_usage',
                 'sensor_usage',
                 'streamtime_usage',
-                'baseline_loss',
+                'RF_loss',
                 'test_loss',
             ]
             
