@@ -445,7 +445,11 @@ def feature_embedding_AL(
     # Note: if you load entire initial models, instead of their weights only,
     # network configuration information is lost and tf will not train encoders
     # alongside training the main prediction model.
-    models = load_encoder_and_predictor_weights(raw_data, models, pred_type)
+    models = load_encoder_and_predictor_weights(
+        raw_data, 
+        models, 
+        pred_type
+    )
 
 
     ### Start AL algorithm ###
@@ -1057,14 +1061,16 @@ def test_AL_sequence_importance(
             )
         
 
-        ### Load models ###
+        ### Load model weights ###
 
+        # Note: if you load entire initial models, instead of their weights only,
+        # network configuration information is lost and tf will not train encoders
+        # alongside training the main prediction model.
         models = load_encoder_and_predictor_weights(
             raw_data, 
             models, 
             pred_type
         )
-
 
         ### Start AL algorithm with random sequence selection ###
 

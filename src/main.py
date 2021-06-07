@@ -278,7 +278,7 @@ models = prediction.build_prediction_model(
 
 ### 2.3 Training ###
 
-_, _ = prediction.train_model(
+train_hist, val_hist = prediction.train_model(
     HYPER, 
     models.prediction_model, 
     training_data, 

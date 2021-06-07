@@ -3,7 +3,6 @@ FROM tensorflow/tensorflow:latest-gpu
 # RUN apt-get update
 # RUN apt-get upgrade -y
 
-
 RUN pip install xlrd
 RUN pip install Pillow
 RUN pip install numpy

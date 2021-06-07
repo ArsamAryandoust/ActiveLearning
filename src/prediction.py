@@ -1038,6 +1038,7 @@ def train_model(
         # add training loss to history
         train_loss_history.append(mean_loss_train.result().numpy())
 
+
         ###
         # Validation ###
         ###
