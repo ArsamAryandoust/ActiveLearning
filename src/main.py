@@ -219,7 +219,7 @@ test_l_spatemp = mean_loss(
     )
 ).numpy()
 
-baseline_results = {
+RF_results = {
     'spatial': test_l_spatial, 
     'temporal': test_l_temporal, 
     'spatio-temporal': test_l_spatemp
@@ -314,27 +314,24 @@ dataset_list = [
 ### 3.4 Batching algorithm ###
 
 # create empty lists to add results
-result_list = []
-random_result_list = []
+AL_result_list = []
+PL_result_list = []
 
 # iterate over all prediction types
 for pred_type in HYPER.PRED_LIST_ACT_LRN:
     
     # choose corresponding test data of currently iterated pred_type
     if pred_type=='spatial':
-    
         dataset = dataset_list[0]
         
     if pred_type=='temporal':
-    
         dataset = dataset_list[1]
         
     if pred_type=='spatio-temporal':
-    
         dataset = dataset_list[2]
         
     # create random result for benchmark once only for this pred_type
-    random_result =  activelearning.feature_embedding_AL(
+    PL_result =  activelearning.feature_embedding_AL(
         HYPER, 
         pred_type, 
         models, 
@@ -362,7 +359,7 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
         for method in HYPER.QUERY_VARIANTS_ACT_LRN:
 
             # test AL with currently iterated AL variable and variant
-            result =  activelearning.feature_embedding_AL(
+            AL_result =  activelearning.feature_embedding_AL(
                 HYPER, 
                 pred_type, 
                 models, 
@@ -379,7 +376,7 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
             )
             
             # test sequence importance for iterated AL variable and variant
-            result = activelearning.test_AL_sequence_importance(
+            AL_result = activelearning.test_AL_sequence_importance(
                 HYPER, 
                 pred_type, 
                 models, 
@@ -390,29 +387,29 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
                 optimizer, 
                 mean_loss, 
                 loss_function, 
-                result,
+                AL_result,
                 method=method, 
                 AL_variable=query_variable, 
                 silent=False
             )
 
             # add results to method_result_list
-            method_result_list.append(result)
+            method_result_list.append(AL_result)
          
          # add results to var_result_list
         var_result_list.append(method_result_list)
     
     # add results to total result_list and random_result_list
-    result_list.append(var_result_list)
-    random_result_list.append(random_result)
+    AL_result_list.append(var_result_list)
+    PL_result_list.append(random_result)
     
 # save active learning results
 activelearning.save_act_lrn_results(
     HYPER, 
     raw_data, 
-    baseline_results, 
-    result_list, 
-    random_result_list
+    RF_results, 
+    AL_result_list, 
+    PL_result_list
 )
 
 # save hyper parameters
@@ -425,14 +422,14 @@ activelearning.save_hyper_params(
 activelearning.save_act_lrn_models(
     HYPER, 
     raw_data, 
-    result_list, 
-    random_result_list
+    AL_result_list, 
+    PL_result_list
 )
 
 # save the test data sample
 activelearning.save_act_lrn_test_sample(
     HYPER, 
     raw_data, 
-    result_list, 
-    random_result_list
+    AL_result_list, 
+    PL_result_list
 )

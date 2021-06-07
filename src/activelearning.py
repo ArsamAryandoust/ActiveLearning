@@ -1018,7 +1018,7 @@ def test_AL_sequence_importance(
     optimizer,
     mean_loss,
     loss_function,
-    results,
+    AL_results,
     method,
     AL_variable=None,
     silent=True
@@ -1069,11 +1069,11 @@ def test_AL_sequence_importance(
             HYPER.DATA_BUDGET_ACT_LRN * candidate_dataset.n_datapoints
         )
         picked_cand_index_set = set()
-        available_index_set_update = results.picked_cand_index_set
+        available_index_set_update = AL_results.picked_cand_index_set
         data_counter = 0
 
         # start AL iterations
-        for iteration in range(results.iter_usage):
+        for iteration in range(AL_results.iter_usage):
 
             ### Set batch size ###
 
@@ -1323,9 +1323,9 @@ def test_AL_sequence_importance(
             loss_function
         )
 
-        results.seqimportance_train_loss = train_hist
-        results.seqimportance_val_loss = val_hist
-        results.seqimportance_test_loss = test_loss
+        AL_results.seqimportance_train_loss = train_hist
+        AL_results.seqimportance_val_loss = val_hist
+        AL_results.seqimportance_test_loss = test_loss
 
         if not silent: 
             # Indicate termination of execute
@@ -1336,9 +1336,9 @@ def test_AL_sequence_importance(
 
 def vis_train_and_val(
     HYPER, 
-    result_list, 
-    random_result_list, 
-    baseline_results
+    AL_result_list, 
+    PL_result_list, 
+    RF_results
 ):
 
     """ Plots training and validation loss histories of each method, sort 
@@ -1368,10 +1368,10 @@ def vis_train_and_val(
         fig, ax = plt.subplots(n_vars, 2, figsize=(20, 10 * n_vars))
 
         # get variable result list
-        var_result_list = result_list[index_pred]
+        var_result_list = AL_result_list[index_pred]
 
         # get random results
-        random_results = random_result_list[index_pred]
+        PL_results = PL_result_list[index_pred]
 
         # get baseline results
         baseline_loss = baseline_results[pred_type]
@@ -1390,17 +1390,17 @@ def vis_train_and_val(
             )
             
             ### Plot PL results once per method for benchmark ###
-            train_loss = random_results.train_loss
-            val_loss = random_results.val_loss
+            train_loss = PL_results.train_loss
+            val_loss = PL_results.val_loss
 
             legend_name = ('PL - {} iter- {}s - {:.0%} budget'
             '- {:.0%} sensors - {:.0%} times - {:.2} loss').format(
-                random_results.iter_usage,
-                random_results.iter_time,
-                random_results.budget_usage,
-                random_results.sensor_usage,
-                random_results.streamtime_usage,
-                random_results.test_loss,
+                PL_results.iter_usage,
+                PL_results.iter_time,
+                PL_results.budget_usage,
+                PL_results.sensor_usage,
+                PL_results.streamtime_usage,
+                PL_results.test_loss,
             )
 
             ax[index_var, 0].plot(
@@ -1416,28 +1416,25 @@ def vis_train_and_val(
                 label=legend_name
             )
 
-
-            
-            
             # get method_result_list of currently iterated prediction type
             method_result_list = var_result_list[index_var]
 
             for index_method, method in enumerate(HYPER.QUERY_VARIANTS_ACT_LRN):
 
-                result = method_result_list[index_method]
+                AL_result = method_result_list[index_method]
 
-                train_loss = result.train_loss
-                val_loss = result.val_loss
+                train_loss = AL_result.train_loss
+                val_loss = AL_result.val_loss
 
                 legend_name = ('{}- {} iter- {}s- {:.0%} budget- {:.0%}'
                 'sensors- {:.0%} times - {:.2} loss').format(
                     method,
-                    result.iter_usage,
-                    result.iter_time,
-                    result.budget_usage,
-                    result.sensor_usage,
-                    result.streamtime_usage,
-                    result.test_loss,
+                    AL_result.iter_usage,
+                    AL_result.iter_time,
+                    AL_result.budget_usage,
+                    AL_result.sensor_usage,
+                    AL_result.streamtime_usage,
+                    AL_result.test_loss,
                 )
 
                 ax[index_var, 0].plot(
@@ -1470,7 +1467,10 @@ def vis_train_and_val(
             ax[index_var, 1].legend(loc='best', frameon=False)
 
 
-def vis_seq_importance(HYPER, result_list):
+def vis_seq_importance(
+    HYPER, 
+    AL_result_list
+):
 
     """ Plots the training and validation losses for AL query sequence vs. 
     a random query sequence of the same data points that were queried using AL. 
@@ -1498,7 +1498,7 @@ def vis_seq_importance(HYPER, result_list):
             fig, ax = plt.subplots(n_vars, 2, figsize=(20, 10 * n_vars))
 
             # get variable result list
-            var_result_list = result_list[index_pred]
+            var_result_list = AL_result_list[index_pred]
 
             for index_var, AL_variable in enumerate(HYPER.QUERY_VARIABLES_ACT_LRN):
 
@@ -1511,13 +1511,13 @@ def vis_seq_importance(HYPER, result_list):
                     HYPER.QUERY_VARIANTS_ACT_LRN
                 ):
 
-                    result = method_result_list[index_method]
+                    AL_result = method_result_list[index_method]
 
-                    train_loss = result.train_loss
-                    val_loss = result.val_loss
+                    train_loss = AL_result.train_loss
+                    val_loss = AL_result.val_loss
 
-                    train_loss_rnd_sequence = result.seqimportance_train_loss
-                    val_loss_rnd_sequence = result.seqimportance_val_loss
+                    train_loss_rnd_sequence = AL_result.seqimportance_train_loss
+                    val_loss_rnd_sequence = AL_result.seqimportance_val_loss
 
                     ax[index_var, 0].plot(
                         train_loss, 
@@ -1575,7 +1575,12 @@ def vis_seq_importance(HYPER, result_list):
                 )
 
 
-def save_act_lrn_models(HYPER, raw_data, result_list, random_result_list):
+def save_act_lrn_models(
+    HYPER, 
+    raw_data, 
+    AL_result_list, 
+    PL_result_list
+):
 
     """ Saves the actively trained prediction models. """
 
@@ -1584,12 +1589,12 @@ def save_act_lrn_models(HYPER, raw_data, result_list, random_result_list):
         for index_pred, pred_type in enumerate(HYPER.PRED_LIST_ACT_LRN):
 
             # get method_result_list of currently iterated prediction type
-            var_result_list = result_list[index_pred]
+            var_result_list = AL_result_list[index_pred]
 
             # get random results
-            random_results = random_result_list[index_pred]
+            PL_results = PL_result_list[index_pred]
 
-            prediction_model = random_results.prediction_model
+            prediction_model = PL_results.prediction_model
 
             # create the full path for saving random  prediction model
             saving_path = raw_data.path_to_AL_models + pred_type + '/'
@@ -1612,8 +1617,8 @@ def save_act_lrn_models(HYPER, raw_data, result_list, random_result_list):
                 ):
 
                     # get result object and prediction model
-                    result = method_result_list[index_method]
-                    prediction_model = result.prediction_model
+                    AL_result = method_result_list[index_method]
+                    prediction_model = AL_result.prediction_model
 
                     # create the full path for saving currently iterated model
                     path_to_model = (
@@ -1631,9 +1636,9 @@ def save_act_lrn_models(HYPER, raw_data, result_list, random_result_list):
 def save_act_lrn_results(
     HYPER, 
     raw_data, 
-    baseline_results, 
-    result_list, 
-    random_result_list
+    RF_results, 
+    AL_result_list, 
+    PL_result_list
 ):
 
     """ Saves the active learning results, including number of iterations used, 
@@ -1658,23 +1663,23 @@ def save_act_lrn_results(
             df_list = []
 
             # baseline results
-            baseline_loss = baseline_results[pred_type]
+            RF_loss = RF_results[pred_type]
 
             # get method_result_list of currently iterated prediction type
-            var_result_list = result_list[pred_index]
+            var_result_list = AL_result_list[pred_index]
 
             # get random results
-            random_results = random_result_list[pred_index]
+            PL_results = PL_result_list[pred_index]
 
-            n_iterations = random_results.iter_usage
-            t_iterations = random_results.iter_time
-            budget_usage = random_results.budget_usage
-            sensor_usage = random_results.sensor_usage
-            streamtime_usage = random_results.streamtime_usage
-            test_loss = random_results.test_loss
+            n_iterations = PL_results.iter_usage
+            t_iterations = PL_results.iter_time
+            budget_usage = PL_results.budget_usage
+            sensor_usage = PL_results.sensor_usage
+            streamtime_usage = PL_results.streamtime_usage
+            test_loss = PL_results.test_loss
 
-            train_loss = random_results.train_loss
-            val_loss = random_results.val_loss
+            train_loss = PL_results.train_loss
+            val_loss = PL_results.val_loss
 
             col_name_train = '{} {} {} train'.format(pred_type, None, 'random')
             col_name_val = '{} {} {} val'.format(pred_type, None, 'random')
@@ -1686,7 +1691,7 @@ def save_act_lrn_results(
                     budget_usage,
                     sensor_usage,
                     streamtime_usage,
-                    baseline_loss,
+                    RF_loss,
                     test_loss,
                 ]
             )
@@ -1717,22 +1722,22 @@ def save_act_lrn_results(
                     HYPER.QUERY_VARIANTS_ACT_LRN
                 ):
 
-                    result = method_result_list[index_method]
+                    AL_result = method_result_list[index_method]
 
-                    n_iterations = result.iter_usage
-                    t_iterations = result.iter_time
-                    budget_usage = result.budget_usage
-                    sensor_usage = result.sensor_usage
-                    streamtime_usage = result.streamtime_usage
-                    test_loss = result.test_loss
-                    delta_loss_baseline = result.test_loss - baseline_loss
-                    delta_loss_random = (
-                        result.test_loss 
-                        - random_results.test_loss
+                    n_iterations = AL_result.iter_usage
+                    t_iterations = AL_result.iter_time
+                    budget_usage = AL_result.budget_usage
+                    sensor_usage = AL_result.sensor_usage
+                    streamtime_usage = AL_result.streamtime_usage
+                    test_loss = AL_result.test_loss
+                    delta_loss_RF = AL_result.test_loss - RF_loss
+                    delta_loss_PL = (
+                        AL_result.test_loss 
+                        - PL_results.test_loss
                     )
 
-                    train_loss = result.train_loss
-                    val_loss = result.val_loss
+                    train_loss = AL_result.train_loss
+                    val_loss = AL_result.val_loss
 
                     col_name_train = '{} {} {} train'.format(
                         pred_type, 
@@ -1752,10 +1757,10 @@ def save_act_lrn_results(
                             budget_usage,
                             sensor_usage,
                             streamtime_usage,
-                            baseline_loss,
+                            RF_loss,
                             test_loss,
-                            delta_loss_baseline,
-                            delta_loss_random,
+                            delta_loss_RF,
+                            delta_loss_PL,
                         ]
                     )
                     entry_train = np.concatenate((meta_entry, train_loss))
@@ -2187,8 +2192,8 @@ def save_hyper_params(HYPER, raw_data):
 def save_act_lrn_test_sample(
     HYPER, 
     raw_data, 
-    result_list, 
-    random_result_list):
+    AL_result_list, 
+    PL_result_list):
 
     """ Saves a random sample of 1,000 data points from the candidate data pool 
     which were not seen by the actively trained prediction models.
@@ -2206,11 +2211,11 @@ def save_act_lrn_test_sample(
                 os.mkdir(saving_path)
 
             # get method_result_list of currently iterated prediction type
-            var_result_list = result_list[index_pred]
+            var_result_list = AL_result_list[index_pred]
 
             # get random results
-            random_results = random_result_list[index_pred]
-            test_data = random_results.test_data
+            PL_results = PL_result_list[index_pred]
+            test_data = PL_results.test_data
 
             X_t = test_data.X_t
             X_s = test_data.X_s
@@ -2238,8 +2243,8 @@ def save_act_lrn_test_sample(
                     HYPER.QUERY_VARIANTS_ACT_LRN
                 ):
 
-                    result = method_result_list[index_method]
-                    test_data = result.test_data
+                    AL_result = method_result_list[index_method]
+                    test_data = AL_result.test_data
 
                     X_t = test_data.X_t
                     X_s = test_data.X_s
