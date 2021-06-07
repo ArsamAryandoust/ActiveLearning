@@ -150,7 +150,8 @@ training_data = data.standardize_features(
     loss_object, 
     optimizer, 
     loss_function, 
-    mean_loss
+    mean_loss_train,
+    mean_loss_test
 ) = prediction.initialize_optimizer(HYPER)
 
 
@@ -187,32 +188,36 @@ spatemp_test_pred = prediction.predict_with_RF(
 ) 
     
 # Calculate the loss on each prediction
-mean_loss.reset_states()
-train_l = mean_loss(
+mean_loss_train.reset_states()
+train_l = mean_loss_train(
     loss_function(
         training_data.Y, 
         train_pred
     )
 ).numpy()
-val_l = mean_loss(
+mean_loss_test.reset_states()
+val_l = mean_loss_test(
     loss_function(
         validation_data.Y, 
         val_pred
     )
 ).numpy()
-test_l_spatial = mean_loss(
+mean_loss_test.reset_states()
+test_l_spatial = mean_loss_test(
     loss_function(
         spatial_test_data.Y, 
         spatial_test_pred
     )
 ).numpy()
-test_l_temporal = mean_loss(
+mean_loss_test.reset_states()
+test_l_temporal = mean_loss_test(
     loss_function(
         temporal_test_data.Y, 
         temporal_test_pred
     )
 ).numpy()
-test_l_spatemp = mean_loss(
+mean_loss_test.reset_states()
+test_l_spatemp = mean_loss_test(
     loss_function(
         spatemp_test_data.Y, 
         spatemp_test_pred
@@ -281,7 +286,8 @@ _, _ = prediction.train_model(
     raw_data,
     loss_object, 
     optimizer, 
-    mean_loss, 
+    mean_loss_train,
+    mean_loss_test, 
     silent=False
 )
 
@@ -340,7 +346,8 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
         dataset, 
         loss_object, 
         optimizer, 
-        mean_loss, 
+        mean_loss_train,
+        mean_loss_test, 
         loss_function,
         'PL', 
         silent=False
@@ -368,7 +375,8 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
                 dataset,
                 loss_object, 
                 optimizer, 
-                mean_loss, 
+                mean_loss_train,
+                mean_loss_test, 
                 loss_function,
                 method=method, 
                 AL_variable=query_variable, 
@@ -385,7 +393,8 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
                 dataset, 
                 loss_object, 
                 optimizer, 
-                mean_loss, 
+                mean_loss_train,
+                mean_loss_test, 
                 loss_function, 
                 AL_result,
                 method=method, 
@@ -401,7 +410,7 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
     
     # add results to total result_list and random_result_list
     AL_result_list.append(var_result_list)
-    PL_result_list.append(random_result)
+    PL_result_list.append(PL_result)
     
 # save active learning results
 activelearning.save_act_lrn_results(

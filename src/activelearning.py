@@ -319,7 +319,8 @@ def feature_embedding_AL(
     candidate_dataset,
     loss_object,
     optimizer,
-    mean_loss,
+    mean_loss_train,
+    mean_loss_test,
     loss_function,
     method,
     AL_variable=None,
@@ -702,6 +703,7 @@ def feature_embedding_AL(
             else:
                 X_s1_new_train = 0
 
+
         ### Update training data for counting sensors and stream times ###
         
         # causing duplicate points on purpose when RED_CAND_DATA_ACT_LRN=False
@@ -805,12 +807,10 @@ def feature_embedding_AL(
             raw_data,
             loss_object,
             optimizer,
-            mean_loss,
+            mean_loss_train,
+            mean_loss_test
         )
         
-        print(train_hist_batch)
-        print(val_hist_batch)
-
         # keep track of loss histories
         if data_counter == 0:
             train_hist = train_hist_batch
@@ -955,7 +955,7 @@ def feature_embedding_AL(
         models.prediction_model, 
         test_data, 
         raw_data, 
-        mean_loss, 
+        mean_loss_test, 
         loss_function
     )
 
@@ -1019,7 +1019,8 @@ def test_AL_sequence_importance(
     candidate_dataset,
     loss_object,
     optimizer,
-    mean_loss,
+    mean_loss_train,
+    mean_loss_test,
     loss_function,
     AL_results,
     method,
@@ -1251,7 +1252,8 @@ def test_AL_sequence_importance(
                 raw_data,
                 loss_object,
                 optimizer,
-                mean_loss,
+                mean_loss_train,
+                mean_loss_test
             )
 
             # keep track of loss histories
@@ -1322,7 +1324,7 @@ def test_AL_sequence_importance(
             models.prediction_model, 
             test_data, 
             raw_data, 
-            mean_loss, 
+            mean_loss_test, 
             loss_function
         )
 
