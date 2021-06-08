@@ -56,7 +56,7 @@ class HyperParameter:
     # "cluster-far", "cluster-close", "cluster-avg"
     QUERY_VARIANTS_ACT_LRN = [
         'rnd d_c', 
-        'min d_c', 
+        #'min d_c', 
         'max d_c', 
         'avg d_c'
     ]
@@ -136,7 +136,7 @@ class HyperParameter:
 
     # Decide how many data points per building-year profile you 
     # want to consider. Choose an integer between 1 and 35040.
-    POINTS_PER_PROFILE = 10
+    POINTS_PER_PROFILE = 30
     
     # Decide how many time steps to predict consumption 
     # into the future. Resolution is 15 min. 96 ~ 24h.

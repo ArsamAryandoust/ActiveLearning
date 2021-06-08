@@ -14,6 +14,8 @@ from matplotlib.lines import Line2D
 from data import Dataset
 from prediction import train_model, test_model
 from prediction import load_encoder_and_predictor_weights
+from prediction import initialize_optimizer
+
 
 from sklearn.preprocessing import OrdinalEncoder
 
@@ -450,6 +452,14 @@ def feature_embedding_AL(
         models, 
         pred_type
     )
+    
+    (
+        loss_object, 
+        optimizer, 
+        loss_function, 
+        mean_loss_train,
+        mean_loss_test
+    ) = initialize_optimizer(HYPER)
 
 
     ### Start AL algorithm ###
