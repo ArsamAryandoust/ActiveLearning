@@ -1617,7 +1617,7 @@ def save_act_lrn_models(
             if not os.path.exists(saving_path):
                 os.mkdir(saving_path)
                 
-            path_to_model = saving_path + 'random.h5'
+            path_to_model = saving_path + 'PL.h5'
 
             # save currently iterated model
             prediction_model.save(path_to_model)
@@ -1639,7 +1639,7 @@ def save_act_lrn_models(
                     path_to_model = (
                         saving_path 
                         + AL_variable 
-                        + '_'
+                        + ' '
                         + method 
                         + '.h5'
                     )
@@ -2245,7 +2245,7 @@ def save_act_lrn_test_sample(
             saving_list = ['X_t', 'X_s', 'X_s1', 'X_st', 'Y']
             for var in saving_list:
                 path_to_var = (
-                    saving_path + 'random_' + var
+                    saving_path + 'PL_' + var
                 )
                 command = 'np.save(path_to_var, ' + var + ')'
                 exec(command)
@@ -2276,9 +2276,9 @@ def save_act_lrn_test_sample(
                         path_to_var = (
                             saving_path
                             + AL_variable
-                            + '_'
+                            + ' '
                             + method
-                            + '_'
+                            + ' '
                             + var
                         )
                         command = 'np.save(path_to_var, ' + var + ')'
