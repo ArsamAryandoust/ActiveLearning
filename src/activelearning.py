@@ -321,8 +321,7 @@ def feature_embedding_AL(
     candidate_dataset,
     loss_object,
     optimizer,
-    mean_loss_train,
-    mean_loss_test,
+    mean_loss,
     loss_function,
     method,
     AL_variable=None,
@@ -457,8 +456,7 @@ def feature_embedding_AL(
         loss_object, 
         optimizer, 
         loss_function, 
-        mean_loss_train,
-        mean_loss_test
+        mean_loss,
     ) = initialize_optimizer(HYPER)
 
 
@@ -821,8 +819,7 @@ def feature_embedding_AL(
             raw_data,
             loss_object,
             optimizer,
-            mean_loss_train,
-            mean_loss_test
+            mean_loss,
         )
         
         # keep track of loss histories
@@ -969,7 +966,7 @@ def feature_embedding_AL(
         models.prediction_model, 
         test_data, 
         raw_data, 
-        mean_loss_test, 
+        mean_loss, 
         loss_function
     )
 
@@ -1033,8 +1030,7 @@ def test_AL_sequence_importance(
     candidate_dataset,
     loss_object,
     optimizer,
-    mean_loss_train,
-    mean_loss_test,
+    mean_loss,
     loss_function,
     AL_results,
     method,
@@ -1268,8 +1264,7 @@ def test_AL_sequence_importance(
                 raw_data,
                 loss_object,
                 optimizer,
-                mean_loss_train,
-                mean_loss_test
+                mean_loss
             )
 
             # keep track of loss histories
@@ -1340,7 +1335,7 @@ def test_AL_sequence_importance(
             models.prediction_model, 
             test_data, 
             raw_data, 
-            mean_loss_test, 
+            mean_loss,
             loss_function
         )
 
@@ -1447,10 +1442,9 @@ def vis_train_and_val(
                 train_loss = AL_result.train_loss
                 val_loss = AL_result.val_loss
 
-                legend_name = ('{}- {} iter- {}s- {:.0%} budget- {:.0%}'
+                legend_name = ('AL {}- {}s- {:.0%} budget- {:.0%} '
                 'sensors- {:.0%} times - {:.2} loss').format(
                     method,
-                    AL_result.iter_usage,
                     AL_result.iter_time,
                     AL_result.budget_usage,
                     AL_result.sensor_usage,

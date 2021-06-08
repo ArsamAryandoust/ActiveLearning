@@ -51,10 +51,9 @@ def initialize_optimizer(HYPER):
     loss_function = HYPER.REGRESSION_LOSS[0]
     
     # set that we want to calculate the mean with respect to individual losses
-    mean_loss_train = tf.keras.metrics.Mean(name='mean_loss_train')
-    mean_loss_test = tf.keras.metrics.Mean(name='mean_loss_test')
+    mean_loss = tf.keras.metrics.Mean(name='mean_loss_train_test')
         
-    return loss_object, optimizer, loss_function, mean_loss_train, mean_loss_test
+    return loss_object, optimizer, loss_function, mean_loss
 
 
 def create_and_train_RF(HYPER, train_data):
@@ -777,8 +776,7 @@ def train_model(
     raw_data,
     loss_object,
     optimizer,
-    mean_loss_train,
-    mean_loss_test,
+    mean_loss,
     monitor='val_loss',
     silent=True,
     plot=False,
@@ -819,7 +817,7 @@ def train_model(
             optimizer.apply_gradients(
                 zip(gradients, model.trainable_variables)
             )
-            mean_loss_train(loss)
+            mean_loss(loss)
 
             return loss
 
@@ -829,7 +827,7 @@ def train_model(
         
             predictions = model(model_input_list, training=False)
             t_loss = loss_object(predictions, Y_data)
-            mean_loss_test(t_loss)
+            mean_loss(t_loss)
 
     elif HYPER.PROBLEM_TYPE == 'classification':
 
@@ -866,7 +864,7 @@ def train_model(
             optimizer.apply_gradients(
                 zip(gradients, model.trainable_variables)
             )
-            mean_loss_train(loss)
+            mean_loss(loss)
 
             return loss
 
@@ -882,7 +880,7 @@ def train_model(
                 prediction = predictions[:, i, :]
                 t_loss += loss_object(Y_data[:, i], prediction)
 
-            mean_loss_test(t_loss)
+            mean_loss(t_loss)
 
     ###
     # Define how to batch data in each training step ###
@@ -997,7 +995,7 @@ def train_model(
         ###
 
         # Reset the metrics at the start of the next epoch
-        mean_loss_train.reset_states()
+        mean_loss.reset_states()
         
         # Shuffle training data
         train_data.randomize()
@@ -1032,11 +1030,11 @@ def train_model(
             # update the progress bar
             if not silent:
             
-                values = [('loss', mean_loss_train.result().numpy())]
+                values = [('loss', mean_loss.result().numpy())]
                 progbar.add(1, values=values)
 
         # add training loss to history
-        train_loss_history.append(mean_loss_train.result().numpy())
+        train_loss_history.append(mean_loss.result().numpy())
 
 
         ###
@@ -1044,7 +1042,7 @@ def train_model(
         ###
 
         # Reset the metrics at the start of the next epoch
-        mean_loss_test.reset_states()
+        mean_loss.reset_states()
 
         # Shuffle validation data
         val_data.randomize()
@@ -1074,11 +1072,11 @@ def train_model(
             # update the progress bar
             if not silent:
             
-                values = [('loss', mean_loss_test.result().numpy())]
+                values = [('loss', mean_loss.result().numpy())]
                 progbar.add(1, values=values)
 
         # add validation loss to history
-        val_loss_history.append(mean_loss_test.result().numpy())
+        val_loss_history.append(mean_loss.result().numpy())
 
 
         ###
@@ -1121,9 +1119,6 @@ def train_model(
         plt.show()
         
         
-    print(train_loss_history)
-    print(val_loss_history)
-        
     return train_loss_history, val_loss_history
 
 
@@ -1133,7 +1128,7 @@ def test_model(
     model,
     test_data,
     raw_data,
-    mean_loss_test,
+    mean_loss,
     loss_function,
     silent=True,
     plot=False,
@@ -1145,7 +1140,7 @@ def test_model(
     """
 
     # Reset the state of the test loss metric
-    mean_loss_test.reset_states()
+    mean_loss.reset_states()
 
     if HYPER.SPATIAL_FEATURES == 'image':
 
@@ -1226,7 +1221,7 @@ def test_model(
     t_loss = loss_function(test_data.Y, predictions)
 
     # take the mean of single losses
-    testing_loss = mean_loss_test(t_loss).numpy()
+    testing_loss = mean_loss(t_loss).numpy()
 
     # tell us how much testing loss we have
     if not silent:

@@ -227,15 +227,12 @@ class TestActiveLearning(unittest.TestCase):
                         
                         # choose corresponding test data of currently iterated pred_type
                         if pred_type=='spatial':
-                        
                             dataset = dataset_list[0]
                             
                         if pred_type=='temporal':
-                        
                             dataset = dataset_list[1]
                             
                         if pred_type=='spatio-temporal':
-                        
                             dataset = dataset_list[2]
                             
                             
@@ -278,29 +275,22 @@ class TestActiveLearning(unittest.TestCase):
                             )
                             
                             if AL_variable == 'X_t':
-                            
                                 encoding_size = HYPER.ENCODING_NODES_X_t
 
                             elif AL_variable == 'X_s1':
-                                
                                 encoding_size = HYPER.ENCODING_NODES_X_s
                                 
                             elif AL_variable == 'X_st':
-                                
                                 encoding_size = HYPER.ENCODING_NODES_X_st
                                 
                             elif AL_variable == 'X_joint':
-                                
                                 encoding_size = HYPER.ENCODING_NODES_X_joint
                                 
                             elif AL_variable == 'X_(t,s)':
-                                
                                 encoding_size = HYPER.PREDICTION_WINDOW
                                 
                             elif AL_variable == 'Y_(t,s)':
-                                
                                 encoding_size = HYPER.PREDICTION_WINDOW
-                            
                                 
                             self.assertEqual(
                                 candidate_encoded.shape[1], 
@@ -470,15 +460,12 @@ class TestActiveLearning(unittest.TestCase):
                 
                 # choose corresponding test data of currently iterated pred_type
                 if pred_type=='spatial':
-                
                     dataset = dataset_list[0]
                     
                 if pred_type=='temporal':
-                
                     dataset = dataset_list[1]
                     
                 if pred_type=='spatio-temporal':
-                
                     dataset = dataset_list[2]
                     
                 # get available index set
@@ -586,8 +573,8 @@ class TestActiveLearning(unittest.TestCase):
         
     def test_encoder_training(self):
 
-        """ Tests if encoder weights are trained when training entire model during
-            Active learning algorithm.
+        """ Tests if encoder weights are trained when training entire model 
+        during Active learning algorithm.
         """
             
         random_seed = 3
@@ -733,15 +720,12 @@ class TestActiveLearning(unittest.TestCase):
             
             # choose corresponding test data of currently iterated pred_type
             if pred_type=='spatial':
-            
                 dataset = dataset_list[0]
                 
             if pred_type=='temporal':
-            
                 dataset = dataset_list[1]
                 
             if pred_type=='spatio-temporal':
-            
                 dataset = dataset_list[2]
                 
             # iterate over all possible AL variables
