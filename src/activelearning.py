@@ -1696,8 +1696,8 @@ def save_act_lrn_results(
             train_loss = PL_results.train_loss
             val_loss = PL_results.val_loss
 
-            col_name_train = '{} {} {} train'.format(pred_type, None, 'random')
-            col_name_val = '{} {} {} val'.format(pred_type, None, 'random')
+            col_name_train = '{} {} {} train'.format(pred_type, None, 'PL')
+            col_name_val = '{} {} {} val'.format(pred_type, None, 'PL')
 
             meta_entry = np.array(
                 [
