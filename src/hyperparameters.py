@@ -56,7 +56,7 @@ class HyperParameter:
     # "cluster-far", "cluster-close", "cluster-avg"
     QUERY_VARIANTS_ACT_LRN = [
         'rnd d_c', 
-        #'min d_c', 
+        'min d_c', 
         'max d_c', 
         'avg d_c'
     ]

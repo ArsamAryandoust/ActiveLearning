@@ -1936,6 +1936,11 @@ def save_hyper_params(HYPER, raw_data):
                 )})
             )
             df_list.append(
+                pd.DataFrame({'extend_train_data_act_lrn': pd.Series(
+                    HYPER.EXTEND_TRAIN_DATA_ACT_LRN
+                )})
+            )
+            df_list.append(
                 pd.DataFrame({'upd_val_data_act_lrn': pd.Series(
                     HYPER.UPD_VAL_DATA_ACT_LRN
                 )})
