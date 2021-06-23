@@ -248,8 +248,8 @@ class TestActiveLearning(unittest.TestCase):
                             "X_t", 
                             "X_s1", 
                             "X_st", 
-                            "X_joint", 
-                            "X_(t,s)", 
+                            "X_(t,s)",
+                            "Y_hat_(t,s)", 
                             "Y_(t,s)"
                         ]:
 
@@ -283,10 +283,10 @@ class TestActiveLearning(unittest.TestCase):
                             elif AL_variable == 'X_st':
                                 encoding_size = HYPER.ENCODING_NODES_X_st
                                 
-                            elif AL_variable == 'X_joint':
+                            elif AL_variable == 'X_(t,s)':
                                 encoding_size = HYPER.ENCODING_NODES_X_joint
                                 
-                            elif AL_variable == 'X_(t,s)':
+                            elif AL_variable == 'Y_hat_(t,s)':
                                 encoding_size = HYPER.PREDICTION_WINDOW
                                 
                             elif AL_variable == 'Y_(t,s)':
@@ -501,8 +501,8 @@ class TestActiveLearning(unittest.TestCase):
                     "X_t", 
                     "X_s1", 
                     "X_st", 
-                    "X_joint", 
-                    "X_(t,s)", 
+                    "X_(t,s)",
+                    "Y_hat_(t,s)", 
                     "Y_(t,s)"
                 ]:
 
@@ -729,7 +729,7 @@ class TestActiveLearning(unittest.TestCase):
                 dataset = dataset_list[2]
                 
             # iterate over all possible AL variables
-            for AL_variable in ["X_t", "X_joint", "Y_(t,s)"]:
+            for AL_variable in ["X_t", "X_(t,s)", "Y_(t,s)"]:
             
                 # iterate over all possible AL variants
                 for method in ["cluster-rnd", "cluster-avg"]:
