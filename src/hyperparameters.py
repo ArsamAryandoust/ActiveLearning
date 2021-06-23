@@ -136,7 +136,7 @@ class HyperParameter:
 
     # Decide how many data points per building-year profile you 
     # want to consider. Choose an integer between 1 and 35040.
-    POINTS_PER_PROFILE = 30
+    POINTS_PER_PROFILE = 20
     
     # Decide how many time steps to predict consumption 
     # into the future. Resolution is 15 min. 96 ~ 24h.
