@@ -16,7 +16,9 @@ src/data.pyc
 src/hyperparameters.pyc
 src/prediction.pyc
 
-images
+images/method
+images/results
+
 
 results
 results_x
