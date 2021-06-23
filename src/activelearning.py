@@ -133,7 +133,7 @@ def encode_features(
                 # make predictions and save results in respective matrix
                 encoding[i] = models.X_s1_encoder.predict(x_s1)
 
-    elif AL_variable == 'X_joint':
+    elif AL_variable == 'X_(t,s)':
 
         if HYPER.SPATIAL_FEATURES != 'image':
             encoding = models.X_joint_encoder.predict([X_t, X_s1, X_st])
@@ -169,7 +169,7 @@ def encode_features(
                 # make predictions and save results in respective matrix
                 encoding[i] = models.X_joint_encoder.predict(model_input_list)
 
-    elif AL_variable == 'X_(t,s)':
+    elif AL_variable == 'Y_hat_(t,s)':
 
         if HYPER.SPATIAL_FEATURES != 'image':
             encoding = models.prediction_model.predict([X_t, X_s1, X_st])

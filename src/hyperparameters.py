@@ -62,11 +62,11 @@ class HyperParameter:
     ]
 
     # Choose AL variables you want to test. Choose from "X_t", "X_s1", "X_st", 
-    # "X_joint", "X_(t,s)", "Y_(t,s)"
+    # "X_(t,s)", "Y_hat_(t,s)", "Y_(t,s)"
     QUERY_VARIABLES_ACT_LRN = [
         'X_st', 
-        'X_joint', 
         'X_(t,s)', 
+        'Y_hat_(t,s)', 
         'Y_(t,s)'
     ]
 
