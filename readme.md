@@ -910,9 +910,6 @@ prediction.save_encoder_and_predictor_weights(
     
 
 
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-
-
 ### 2.4 Testing
 
 We calculate the prediction error of our trained model on all available datasets and plot exemplar predictons for each of these. The x-axis of each plot describes the 15-min time steps into the future from a given time stamp, and the y-axis the corresponding electric consumption of a given building at these times in kW/kWh.
@@ -979,38 +976,11 @@ _ = prediction.test_model(
 ```
 
     Training data loss: 0.29191273
-
-
-    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
-      fontsize=16,
-
-
     Validation data loss: 1.0250593
-
-
-    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
-      fontsize=16,
-
-
     Spatial test data loss: 0.9129012
-
-
-    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
-      fontsize=16,
-
-
     Temporal test data loss: 24.197796
-
-
-    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
-      fontsize=16,
-
-
     Spatio temporal test data loss: 21.663588
 
-
-    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
-      fontsize=16,
 
 
 
@@ -1180,55 +1150,19 @@ for dataset, encoded_dataset in zip(
 ```
 
     Creating clusters in encodings with n_clusters= 115
-
-
-    /ActiveLearning/src/activelearning.py:240: ConvergenceWarning: Number of distinct clusters (50) found smaller than n_clusters (115). Possibly due to duplicate points in X.
-      clustering_method.fit(encoding)
-
-
-    Creating clusters in encodings with n_clusters= 115
-
-
-    /ActiveLearning/src/activelearning.py:240: ConvergenceWarning: Number of distinct clusters (46) found smaller than n_clusters (115). Possibly due to duplicate points in X.
-      clustering_method.fit(encoding)
-
-
     Creating clusters in encodings with n_clusters= 115
     Creating clusters in encodings with n_clusters= 115
     Creating clusters in encodings with n_clusters= 115
     Creating clusters in encodings with n_clusters= 115
     Creating clusters in encodings with n_clusters= 115
-
-
-    /ActiveLearning/src/activelearning.py:240: ConvergenceWarning: Number of distinct clusters (50) found smaller than n_clusters (115). Possibly due to duplicate points in X.
-      clustering_method.fit(encoding)
-
-
-    Creating clusters in encodings with n_clusters= 115
-
-
-    /ActiveLearning/src/activelearning.py:240: ConvergenceWarning: Number of distinct clusters (46) found smaller than n_clusters (115). Possibly due to duplicate points in X.
-      clustering_method.fit(encoding)
-
-
     Creating clusters in encodings with n_clusters= 115
     Creating clusters in encodings with n_clusters= 115
     Creating clusters in encodings with n_clusters= 115
     Creating clusters in encodings with n_clusters= 115
     Creating clusters in encodings with n_clusters= 115
-
-
-    /ActiveLearning/src/activelearning.py:240: ConvergenceWarning: Number of distinct clusters (50) found smaller than n_clusters (115). Possibly due to duplicate points in X.
-      clustering_method.fit(encoding)
-
-
     Creating clusters in encodings with n_clusters= 115
-
-
-    /ActiveLearning/src/activelearning.py:240: ConvergenceWarning: Number of distinct clusters (46) found smaller than n_clusters (115). Possibly due to duplicate points in X.
-      clustering_method.fit(encoding)
-
-
+    Creating clusters in encodings with n_clusters= 115
+    Creating clusters in encodings with n_clusters= 115
     Creating clusters in encodings with n_clusters= 115
     Creating clusters in encodings with n_clusters= 115
     Creating clusters in encodings with n_clusters= 115
@@ -2918,23 +2852,7 @@ activelearning.save_act_lrn_test_sample(
     query variant:                        avg d_c
     10/10 [==============================] - 43s 4s/step
     ------------------------------------------------------------
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
-    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+
 
 
 
