@@ -1,6 +1,51 @@
 # Active machine learning for spatio-temporal predictions
 ---
 
+
+## Content overview 
+
+1. Data processing
+2. Prediction model
+3. Active learning
+
+
+Given the aerial image of a building, the meteorological conditions in the region of that building and a time stamp, we want to predict the electric load profile of the building for the next 24 hours in 15 min steps. We start with a prediction model that has learnt this relationship for a few buildings and times. Our features are all remotely sensed and assumed to be available for every building and point in time at no cost. For every new load profile that we collect, we assume to experience some cost and are constrained in the total number of profiles that we can collect by some budget. Our goal is to collect further ground truth data, i.e. the electric load profiles at different times and buildings, so as to make the best possible predictions for buildings and times, for which we do not have load profiles available, without exceeding our data budget. 
+
+In each iteration of the AL algorithm that we apply, we query a batch of candidate data points. First, we encode the features of candidate data points into an embedded vector space using a modular neural network prediction model that is trained on initially available data points. We then cluster candidate data points based on their vector distances to each other in this encoded space, with the number of clusters being equal to our query batch size. Next, we calculate the distance of the vector of each encoded data point to its cluster center, and query one data point per cluster based on these distances. We test our AL method for randomized, maximized, minimized and averaged distances in every queried data batch. We refer to these as our query variants.
+
+<img src="images/method/figure_Github.png">
+
+The figure above visualizes the general architecture of embedding networks and different variants of embedding distance based data queries. In a first variant of our AL method, we randomly select data points from each embedded cluster of candidates (rnd d_c). In a second variant, we query candidate data points whose embedded feature vectors are further away from their cluster centers (max d_c). We expect to be more uncertain about these points, as they are more likely to be true members of another cluster: we likely explore the data that is close to our decision boundaries, if not outliers, and expect a larger surprise/learning experience from querying labels for these data points. In a third variant, we query labels of data points that are close to their cluster centers, which we expect to be more representative of their clusters and respectively our entire data population (min d_c). In a fourth variant, we query data points that have the largest distance to the average of distances to cluster centers among all points of the same cluster, which results in a combination of queries alternating between uncertain and representative data points (avg d_c).
+
+The abbreviation ANN stands for a densely connected, CNN for a convolutional, RNN for a recurrent and CRNN for a convolutional and recurrent neural network architecture. The scatter plots represent the candidate data points that are encoded using one of the encoders from the embedding network exemplarly for a queried batch size of three and embedded feature vectors of dimension two. Points of the same color are equally clustered. Squares represent cluster centers. Crosses describe which data points are chosen when randomizing (rnd d_c), maximizing (max d_c), minimizing (min d_c) and averaging (avg d_c - only one marked point per cluster is chosen) the embedding distance of a queried data batch. 
+
+---
+
+## Citations
+
+For citations and more background on this work, refer to: **Aryandoust, A., Pfenninger, S. Active machine learning for spatio-temporal predictions. Preprint at https://arxiv.org/abs/2012.04407 (2021).**
+
+---
+
+## File overview
+
+* main.py: main file for reproducing experimental results
+* hyperparameters.py: module for choosing all hyper parameters of experiments
+* data.py: module for processing data 
+* prediction.py: module for building, training and testing prediction models
+* activelearning.py: active learning methods
+* tests/test_prediction.py: unit tests for prediction.py
+* tests/test_activelearning.py: unit tests for activelearning.py
+* main_notebook.ipynb: Jupyter notebook session for reproducing method and experiments
+* results_notebook.ipynb: Jupyer notebook sessions for plotting and analysing experimental results
+* Docker: repository containing a Dockerfile for running hypothesis test inside a docker container
+* DockerNotebook: repository containing a Dockerfile for running notebooks inside a docker container
+* data: folder containing required data for running experiments 
+* results: folder containing results after running experiments
+* images: folder containing images for this readme
+
+---
+
 ## Docker 
 
 Download this repository to your home directory. With your current working directory being this repository, run:
@@ -20,9 +65,11 @@ For GPU support, make sure you have the nvidia-container-toolkit installed, then
 `docker run -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning main`
 
 
-`docker run --gpus 1 -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning main`
+`docker run --gpus all -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning main`
 
-#### Jupyter notebooks inside docker
+---
+
+## Jupyter notebooks with docker
 
 For running jupyter notebook sessions inside a docker container, run:
 
@@ -36,7 +83,7 @@ For GPU support, make sure you have the nvidia-container-toolkit installed, and 
 
 `docker run -it --gpus all -v ~/ActiveLearning:/ActiveLearning -p 3333:1111 main_notebook`
 
-Next, open the link showing up in your terminal (e.g. http://127.0.0.1:3333/?token=38b8cccba94e7360d52d2935df065a99c567e2d2b203d558) to run Jupyter notebook sessions inside the docker container from your browser.
+Next, open localhost:3333 in your browser and type in the token from your terminal as password to run Jupyter notebook sessions inside the docker container from your browser.
 
 **Note:** If you download this repository to a location other than your home directory, make sure it is at a sub-directory of your home directory and replace all ~/ActiveLearning with ~/path/to/subdirectory/ActiveLearning in the commands, i.e.
 
@@ -45,49 +92,32 @@ Next, open the link showing up in your terminal (e.g. http://127.0.0.1:3333/?tok
 
 `docker run -it --gpus all -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning -p 3333:1111 main_notebook`
 
+---
+
+## Unit tests with docker
+
+For running unittests for the implemented active learning algorithm inside a docker container, run:
+
+`docker build -t tests DockerTests`
+
+For CPU computation, run:
+
+`docker run -v ~/ActiveLearning:/ActiveLearning tests`
+
+For GPU support, make sure you have the nvidia-container-toolkit installed, then run:
+
+`docker run --gpus all -v ~/ActiveLearning:/ActiveLearning tests`
+
+**Note:** If you download this repository to a location other than your home directory, make sure it is at a sub-directory of your home directory and replace all ~/ActiveLearning with ~/path/to/subdirectory/ActiveLearning in the commands, i.e.
+
+`docker run -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning tests`
 
 
-## Manuscript and citations
-
-The newest version of the manuscript is uploaded here (manuscript.pdf) in order to avoid incremental version updates on arxiv. For citations and for more background on this work, please use: **Aryandoust, A., Pfenninger, S. Active machine learning for spatio-temporal predictions using feature embedding. Preprint at https://arxiv.org/abs/2012.04407 (2020).**
-
-## File overview
-
-* hypothesistest.py: main file for reproducing experimental results
-* hyperparameters.py: module for choosing all hyper parameters of experiments
-* data.py: module for processing data 
-* prediction.py: module for building, training and testing prediction models
-* activelearning.py: active learning methods
-* test_prediction.py: unit tests for prediction.py
-* test_activelearning.py: unit tests for activelearning.py
-* hypothesistest.ipynb: Jupyter notebook session for reproducing method and experiments
-* resultfigures.ipynb: Jupyer notebook sessions for plotting and analysing experimental results
-* Docker: repository containing a Dockerfile for running hypothesis test inside a docker container
-* DockerNotebook: repository containing a Dockerfile for running notebooks inside a docker container
-* data: folder containing required data for running experiments 
-* results: folder containing results after running experiments
-* images: folder containing images for this readme
+`docker run --gpus all -v ~/path/to/subdirectory/ActiveLearning:/ActiveLearning tests`
 
 ---
 
-## Overview 
-
-1. Data processing
-2. Prediction model
-3. Active Learning
-
-Active learning (AL) could contribute to solving critical environmental problems through improved spatio-temporal predictions. Yet such predictions involve high-dimensional feature spaces with mixed data types and missing data, which existing methods have difficulties dealing with. Here, we propose a novel AL method to fill this gap: we encode and cluster features of candidate data points, and query the best data based on the distance of embedded features to their cluster centers. We introduce a new metric of informativeness called *embedding entropy* and a general class of neural networks called *embedding networks* for using it. Empirical tests on forecasting electricity demand show reductions of data demand by up to 38-63%, sensor demand by up to 3-8% and simultaneously lower testing losses of up to 51-82% compared to passive learning (PL) benchmarks.
-
-Given the aerial image of a building, the meteorological conditions in the region of that building and a time stamp, we want to predict the electric load profile of the building for the next 24 hours in 15 min steps. We start with a prediction model that has learnt this relationship for a few buildings and times. Our features are all remotely sensed and assumed to be available for every building and point in time at no cost. For every new load profile that we collect, we assume to experience some cost and are constrained in the total number of profiles that we can collect by some budget. Our goal is to collect further ground truth data, i.e. the electric load profiles at different times and buildings, so as to make the best possible predictions for buildings and times, for which we do not have load profiles available, without exceeding our budget.
-
-In each iteration of our AL algorithm, we query a batch of candidate data points. First, we encode the features of candidate data points into an embedded vector space using a modular neural network prediction model that is trained on initially available data points. We then cluster candidate data points based on their vector distances to each other in this encoded space. Next, we use the distance of the vector of each encoded data point to its cluster center to compute its embedding entropy. We test our method for randomized, maximized, minimized, and averaged embedding entropy of each batch, and refer to these as our query variants.
-
-<img src="images/figure_Github.png">
-
-The figure above visualizes the general architecture of embedding networks (a.) and different variants of embedding entropy based data queries (b.-e.). Randomizing embedding entropy allows us to query representative samples of our candidate data population, without considering uncertainties (b.). Candidate data points whose embedded feature vectors are further away from their cluster's center are expected to be more diverse than other members and therefore have a larger embedding entropy. We expect to be more *uncertain* about these points, as they are more likely to be true members of another cluster: we likely explore the data that is close to our *decision boundaries*, if not outliers, and expect a larger *surprise* from querying labels for these data points (c.). When querying labels of data points that are close to their cluster centers, we expect these to be more *representative* of their clusters and all our candidates, respectively (d.). If we query data points that have the largest distance to the average of distances to cluster centers among all points of the same cluster, we combine queries of most uncertain and most representative data points (e.).
-
-
-The abbreviation ANN stands for a densely connected, CNN for a convolutional, RNN for a recurrent and CRNN for a convolutional and recurrent neural network architecture. The scatter plots represent the candidate data points that are encoded using one of the encoders from the embedding network exemplarly for a queried batch size of three and embedded feature vectors of dimension two. Points of the same color are equally clustered. Squares represent cluster centers. Crosses describe which data points are chosen when randomizing (upper left), maximizing (lower right), minimizing (lower left) and averaging (lower right - only one marked point per cluster is chosen) the embedding entropy of a queried data batch.  We start with importing a number of packages that we need for implementing this algorithm, and define a number of hyper parameters that are bundled through the use of attributes of a class object *HyperParameter* defined in **hyperparameters.py**.
+We start with importing a number of packages that we need for implementing this algorithm, and define a number of hyper parameters that are bundled through the use of attributes of a class object *HyperParameter* defined in **hyperparameters.py**.
 
 
 ```python
@@ -189,12 +219,14 @@ raw_data = data.import_consumption_profiles(HYPER, raw_data)
 ```
 
     Importing consumption profiles
-    1/1 [==============================] - 0s 396ms/step
+    1/1 [==============================] - 0s 268ms/step
     The 92 imported electric load profiles demand a total amount of 0.02606976 GB of RAM
 
 
 
+    
 ![png](images/markdown/output_5_1.png)
+    
 
 
 ### 1.2 Building-scale aerial imagery
@@ -207,12 +239,14 @@ raw_data = data.import_building_images(HYPER, raw_data)
 ```
 
     Importing building-scale aerial imagery:
-    92/92 [==============================] - 0s 4ms/step
+    92/92 [==============================] - 0s 5ms/step
     The 92 aerial images demand 0.2053969919999995 GB RAM with float32 entries
 
 
 
+    
 ![png](images/markdown/output_7_1.png)
+    
 
 
 ### 1.3 Cluster-scale meteorological data
@@ -225,12 +259,14 @@ raw_data = data.import_meteo_data(HYPER, raw_data)
 ```
 
     Importing meteorological data
-    11/11 [==============================] - 0s 40ms/step
+    11/11 [==============================] - 0s 33ms/step
     The 11 meteo data files demand 0.030835199999999993 GB RAM
 
 
 
+    
 ![png](images/markdown/output_9_1.png)
+    
 
 
 ### 1.4 Feature-label pairing
@@ -245,7 +281,7 @@ dataset, raw_data = data.create_feature_label_pairs(HYPER, raw_data)
 ```
 
     Creating feature label data pairs:
-    9200/9200 [==============================] - 7s 781us/step
+    9200/9200 [==============================] - 5s 534us/step
 
 
 ### 1.5 Encode temporal features
@@ -411,24 +447,32 @@ train_l = mean_loss(
         train_pred
     )
 ).numpy()
+
+mean_loss.reset_states()
 val_l = mean_loss(
     loss_function(
         validation_data.Y, 
         val_pred
     )
 ).numpy()
+
+mean_loss.reset_states()
 test_l_spatial = mean_loss(
     loss_function(
         spatial_test_data.Y, 
         spatial_test_pred
     )
 ).numpy()
+
+mean_loss.reset_states()
 test_l_temporal = mean_loss(
     loss_function(
         temporal_test_data.Y, 
         temporal_test_pred
     )
 ).numpy()
+
+mean_loss.reset_states()
 test_l_spatemp = mean_loss(
     loss_function(
         spatemp_test_data.Y, 
@@ -436,7 +480,7 @@ test_l_spatemp = mean_loss(
     )
 ).numpy()
 
-baseline_results = {
+RF_results = {
     'spatial': test_l_spatial, 
     'temporal': test_l_temporal, 
     'spatio-temporal': test_l_spatemp
@@ -518,40 +562,60 @@ del RF_regr
 _ = gc.collect()
 ```
 
-    The out-of-bag validation score for random forest is: 0.5186157069609221
-    Loss on training data:             0.061729032546281815
-    Loss on validation data:           0.2616528272628784
-    Loss on spatial test data:         0.6459832787513733
-    Loss on temporal test data:        0.8002526164054871
-    Loss on spatio-temporal test data: 1.0621405839920044
+    The out-of-bag validation score for random forest is: 0.3578184247151839
+    Loss on training data:             0.15231746435165405
+    Loss on validation data:           0.9836465120315552
+    Loss on spatial test data:         0.6739470362663269
+    Loss on temporal test data:        1.6501212120056152
+    Loss on spatio-temporal test data: 1.5084584951400757
 
 
-    /home/aa/.local/lib/python3.5/site-packages/matplotlib/legend.py:1270: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
-      warnings.warn("You have mixed positional and keyword arguments, some "
+    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+      fontsize=16,
+    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+      fontsize=16,
+    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+      fontsize=16,
+    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+      fontsize=16,
+    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+      fontsize=16,
 
 
 
+    
 ![png](images/markdown/output_23_2.png)
+    
 
 
 
+    
 ![png](images/markdown/output_23_3.png)
+    
 
 
 
+    
 ![png](images/markdown/output_23_4.png)
+    
 
 
 
+    
 ![png](images/markdown/output_23_5.png)
+    
 
 
 
+    
 ![png](images/markdown/output_23_6.png)
+    
 
 
 
+    
 ![png](images/markdown/output_23_7.png)
+    
 
 
 ### 2.2 Definition
@@ -568,7 +632,7 @@ models = prediction.build_prediction_model(
 ```
 
     Building prediction model
-    Model: "functional_9"
+    Model: "model_4"
     __________________________________________________________________________________________________
     Layer (type)                    Output Shape         Param #     Connected to                     
     ==================================================================================================
@@ -612,43 +676,48 @@ models = prediction.build_prediction_model(
     Trainable params: 10,744,600
     Non-trainable params: 0
     __________________________________________________________________________________________________
-    Computation graph for X_st_encoder:
-
-
-
-![png](images/markdown/output_25_1.png)
-
-
-    ---------------------------------------------------------------------------------------------------------
     Computation graph for X_t_encoder:
+    ('You must install pydot (`pip install pydot`) and install graphviz (see instructions at https://graphviz.gitlab.io/download/) ', 'for plot_model/model_to_dot to work.')
 
 
 
-![png](images/markdown/output_25_3.png)
+    None
 
 
     ---------------------------------------------------------------------------------------------------------
     Computation graph for X_s1_encoder:
+    ('You must install pydot (`pip install pydot`) and install graphviz (see instructions at https://graphviz.gitlab.io/download/) ', 'for plot_model/model_to_dot to work.')
 
 
 
-![png](images/markdown/output_25_5.png)
+    None
+
+
+    ---------------------------------------------------------------------------------------------------------
+    Computation graph for X_st_encoder:
+    ('You must install pydot (`pip install pydot`) and install graphviz (see instructions at https://graphviz.gitlab.io/download/) ', 'for plot_model/model_to_dot to work.')
+
+
+
+    None
 
 
     ---------------------------------------------------------------------------------------------------------
     Computation graph for X_joint_encoder:
+    ('You must install pydot (`pip install pydot`) and install graphviz (see instructions at https://graphviz.gitlab.io/download/) ', 'for plot_model/model_to_dot to work.')
 
 
 
-![png](images/markdown/output_25_7.png)
+    None
 
 
     ---------------------------------------------------------------------------------------------------------
     Computation graph for prediction_model:
+    ('You must install pydot (`pip install pydot`) and install graphviz (see instructions at https://graphviz.gitlab.io/download/) ', 'for plot_model/model_to_dot to work.')
 
 
 
-![png](images/markdown/output_25_9.png)
+    None
 
 
     ---------------------------------------------------------------------------------------------------------
@@ -663,7 +732,7 @@ Note: All details of the training process can be seen in the very first section 
 
 ```python
 # Call training and saving functions
-_, _ = prediction.train_model(
+train_loss_hist, val_loss_hist = prediction.train_model(
     HYPER, 
     models.prediction_model, 
     training_data, 
@@ -690,158 +759,158 @@ prediction.save_encoder_and_predictor_weights(
 
     Epoch 1/30
     Training:
-    71/70 [==============================] - 2s 32ms/step - loss: 0.6792
+    71/70 [==============================] - 3s 6ms/step - loss: 1.6351
     Validation:
-    71/70 [==============================] - 0s 3ms/step - loss: 0.5427
+    71/70 [==============================] - 0s 3ms/step - loss: 1.1024
     Epoch 2/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.5264
+    71/70 [==============================] - 0s 6ms/step - loss: 1.3952
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.8397
+    71/70 [==============================] - 0s 3ms/step - loss: 1.0602
     Epoch 3/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.5215
+    71/70 [==============================] - 0s 5ms/step - loss: 1.3439
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.5915
+    71/70 [==============================] - 0s 3ms/step - loss: 1.0832
     Epoch 4/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.5009
+    71/70 [==============================] - 0s 5ms/step - loss: 1.3037
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.5093
+    71/70 [==============================] - 0s 3ms/step - loss: 1.0870
     Epoch 5/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.4307
+    71/70 [==============================] - 0s 6ms/step - loss: 1.1578
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.5770
+    71/70 [==============================] - 0s 3ms/step - loss: 1.0506
     Epoch 6/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.4193
+    71/70 [==============================] - 0s 6ms/step - loss: 0.9991
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.4643
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9885
     Epoch 7/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.3641
+    71/70 [==============================] - 0s 6ms/step - loss: 0.9208
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.5227
+    71/70 [==============================] - 0s 3ms/step - loss: 1.0282
     Epoch 8/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.3486
+    71/70 [==============================] - 0s 6ms/step - loss: 0.8082
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.8093
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9621
     Epoch 9/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.3113
+    71/70 [==============================] - 0s 6ms/step - loss: 0.7533
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.5494
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9857
     Epoch 10/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.3041
+    71/70 [==============================] - 0s 6ms/step - loss: 0.6941
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.4935
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9176
     Epoch 11/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.2864
+    71/70 [==============================] - 0s 6ms/step - loss: 0.6505
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.4959
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9222
     Epoch 12/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.2731
+    71/70 [==============================] - 0s 6ms/step - loss: 0.5995
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.4831
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9776
     Epoch 13/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.2600
+    71/70 [==============================] - 0s 6ms/step - loss: 0.5909
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.5235
+    71/70 [==============================] - 0s 3ms/step - loss: 0.8518
     Epoch 14/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.2484
+    71/70 [==============================] - 0s 6ms/step - loss: 0.5649
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.4574
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9685
     Epoch 15/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.2236
+    71/70 [==============================] - 0s 6ms/step - loss: 0.5087
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.4847
+    71/70 [==============================] - 0s 3ms/step - loss: 1.0684
     Epoch 16/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.2278
+    71/70 [==============================] - 0s 6ms/step - loss: 0.5178
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.4810
+    71/70 [==============================] - 0s 3ms/step - loss: 0.8640
     Epoch 17/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.2107
+    71/70 [==============================] - 0s 6ms/step - loss: 0.5122
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.4771
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9139
     Epoch 18/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.2104
+    71/70 [==============================] - 0s 5ms/step - loss: 0.4872
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.4764
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9360
     Epoch 19/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.1903
+    71/70 [==============================] - 0s 6ms/step - loss: 0.4773
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.4693
+    71/70 [==============================] - 0s 3ms/step - loss: 0.8350
     Epoch 20/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.1846
+    71/70 [==============================] - 0s 5ms/step - loss: 0.4654
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.4537
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9338
     Epoch 21/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.1703
+    71/70 [==============================] - 0s 6ms/step - loss: 0.4270
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.5990
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9589
     Epoch 22/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.1653
+    71/70 [==============================] - 0s 6ms/step - loss: 0.4255
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.4966
+    71/70 [==============================] - 0s 3ms/step - loss: 0.8856
     Epoch 23/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.1726
+    71/70 [==============================] - 0s 6ms/step - loss: 0.4231
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.4709
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9726
     Epoch 24/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.1582
+    71/70 [==============================] - 0s 6ms/step - loss: 0.4202
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.4698
+    71/70 [==============================] - 0s 3ms/step - loss: 0.8918
     Epoch 25/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.1457
+    71/70 [==============================] - 0s 6ms/step - loss: 0.3710
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.4801
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9798
     Epoch 26/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.1459
+    71/70 [==============================] - 0s 6ms/step - loss: 0.3643
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.4613
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9092
     Epoch 27/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.1375
+    71/70 [==============================] - 0s 6ms/step - loss: 0.3756
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.4425
+    71/70 [==============================] - 0s 3ms/step - loss: 1.0049
     Epoch 28/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.1287
+    71/70 [==============================] - 0s 6ms/step - loss: 0.3249
     Validation:
-    71/70 [==============================] - 0s 1ms/step - loss: 0.4792
+    71/70 [==============================] - 0s 3ms/step - loss: 0.9945
     Epoch 29/30
     Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.1277
+    71/70 [==============================] - 0s 6ms/step - loss: 0.3296
     Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.4785
-    Epoch 30/30
-    Training:
-    71/70 [==============================] - 0s 4ms/step - loss: 0.1207
-    Validation:
-    71/70 [==============================] - 0s 2ms/step - loss: 0.5059
+    71/70 [==============================] - 0s 3ms/step - loss: 1.0353
 
 
 
+    
 ![png](images/markdown/output_27_1.png)
+    
+
+
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
 
 
 ### 2.4 Testing
@@ -891,7 +960,7 @@ prediction.test_model(
     models.prediction_model, 
     temporal_test_data, 
     raw_data,
-    mean_loss, 
+    mean_loss,  
     loss_function, 
     silent=False, 
     plot=True
@@ -909,31 +978,69 @@ _ = prediction.test_model(
 )
 ```
 
-    Training data loss: 0.10536553
-    Validation data loss: 0.50363356
-    Spatial test data loss: 1.4188664
-    Temporal test data loss: 3.244027
-    Spatio temporal test data loss: 4.116081
+    Training data loss: 0.29191273
+
+
+    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+      fontsize=16,
+
+
+    Validation data loss: 1.0250593
+
+
+    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+      fontsize=16,
+
+
+    Spatial test data loss: 0.9129012
+
+
+    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+      fontsize=16,
+
+
+    Temporal test data loss: 24.197796
+
+
+    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+      fontsize=16,
+
+
+    Spatio temporal test data loss: 21.663588
+
+
+    /ActiveLearning/src/prediction.py:277: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+      fontsize=16,
 
 
 
-![png](images/markdown/output_29_1.png)
+    
+![png](images/markdown/output_29_10.png)
+    
 
 
 
-![png](images/markdown/output_29_2.png)
+    
+![png](images/markdown/output_29_11.png)
+    
 
 
 
-![png](images/markdown/output_29_3.png)
+    
+![png](images/markdown/output_29_12.png)
+    
 
 
 
-![png](images/markdown/output_29_4.png)
+    
+![png](images/markdown/output_29_13.png)
+    
 
 
 
-![png](images/markdown/output_29_5.png)
+    
+![png](images/markdown/output_29_14.png)
+    
 
 
 ## 3. Active learning
@@ -956,8 +1063,8 @@ query_variable_list = [
     'X_t', 
     'X_s1', 
     'X_st', 
-    'X_joint', 
     'X_(t,s)', 
+    'Y_hat_(t,s)', 
     'Y_(t,s)'
 ]
 ```
@@ -1001,20 +1108,20 @@ for dataset in dataset_list:
     Encoding features into embedded vector spaces for X_t
     Encoding features into embedded vector spaces for X_s1
     Encoding features into embedded vector spaces for X_st
-    Encoding features into embedded vector spaces for X_joint
     Encoding features into embedded vector spaces for X_(t,s)
+    Encoding features into embedded vector spaces for Y_hat_(t,s)
     Encoding features into embedded vector spaces for Y_(t,s)
     Encoding features into embedded vector spaces for X_t
     Encoding features into embedded vector spaces for X_s1
     Encoding features into embedded vector spaces for X_st
-    Encoding features into embedded vector spaces for X_joint
     Encoding features into embedded vector spaces for X_(t,s)
+    Encoding features into embedded vector spaces for Y_hat_(t,s)
     Encoding features into embedded vector spaces for Y_(t,s)
     Encoding features into embedded vector spaces for X_t
     Encoding features into embedded vector spaces for X_s1
     Encoding features into embedded vector spaces for X_st
-    Encoding features into embedded vector spaces for X_joint
     Encoding features into embedded vector spaces for X_(t,s)
+    Encoding features into embedded vector spaces for Y_hat_(t,s)
     Encoding features into embedded vector spaces for Y_(t,s)
 
 
@@ -1075,32 +1182,14 @@ for dataset, encoded_dataset in zip(
     Creating clusters in encodings with n_clusters= 115
 
 
-    /home/aa/Documents/research/EmbeddingEntropy/activelearning.py:256: ConvergenceWarning: Number of distinct clusters (50) found smaller than n_clusters (115). Possibly due to duplicate points in X.
+    /ActiveLearning/src/activelearning.py:240: ConvergenceWarning: Number of distinct clusters (50) found smaller than n_clusters (115). Possibly due to duplicate points in X.
       clustering_method.fit(encoding)
 
 
     Creating clusters in encodings with n_clusters= 115
 
 
-    /home/aa/Documents/research/EmbeddingEntropy/activelearning.py:256: ConvergenceWarning: Number of distinct clusters (46) found smaller than n_clusters (115). Possibly due to duplicate points in X.
-      clustering_method.fit(encoding)
-
-
-    Creating clusters in encodings with n_clusters= 115
-    Creating clusters in encodings with n_clusters= 115
-    Creating clusters in encodings with n_clusters= 115
-    Creating clusters in encodings with n_clusters= 115
-    Creating clusters in encodings with n_clusters= 115
-
-
-    /home/aa/Documents/research/EmbeddingEntropy/activelearning.py:256: ConvergenceWarning: Number of distinct clusters (50) found smaller than n_clusters (115). Possibly due to duplicate points in X.
-      clustering_method.fit(encoding)
-
-
-    Creating clusters in encodings with n_clusters= 115
-
-
-    /home/aa/Documents/research/EmbeddingEntropy/activelearning.py:256: ConvergenceWarning: Number of distinct clusters (46) found smaller than n_clusters (115). Possibly due to duplicate points in X.
+    /ActiveLearning/src/activelearning.py:240: ConvergenceWarning: Number of distinct clusters (46) found smaller than n_clusters (115). Possibly due to duplicate points in X.
       clustering_method.fit(encoding)
 
 
@@ -1111,14 +1200,32 @@ for dataset, encoded_dataset in zip(
     Creating clusters in encodings with n_clusters= 115
 
 
-    /home/aa/Documents/research/EmbeddingEntropy/activelearning.py:256: ConvergenceWarning: Number of distinct clusters (50) found smaller than n_clusters (115). Possibly due to duplicate points in X.
+    /ActiveLearning/src/activelearning.py:240: ConvergenceWarning: Number of distinct clusters (50) found smaller than n_clusters (115). Possibly due to duplicate points in X.
       clustering_method.fit(encoding)
 
 
     Creating clusters in encodings with n_clusters= 115
 
 
-    /home/aa/Documents/research/EmbeddingEntropy/activelearning.py:256: ConvergenceWarning: Number of distinct clusters (46) found smaller than n_clusters (115). Possibly due to duplicate points in X.
+    /ActiveLearning/src/activelearning.py:240: ConvergenceWarning: Number of distinct clusters (46) found smaller than n_clusters (115). Possibly due to duplicate points in X.
+      clustering_method.fit(encoding)
+
+
+    Creating clusters in encodings with n_clusters= 115
+    Creating clusters in encodings with n_clusters= 115
+    Creating clusters in encodings with n_clusters= 115
+    Creating clusters in encodings with n_clusters= 115
+    Creating clusters in encodings with n_clusters= 115
+
+
+    /ActiveLearning/src/activelearning.py:240: ConvergenceWarning: Number of distinct clusters (50) found smaller than n_clusters (115). Possibly due to duplicate points in X.
+      clustering_method.fit(encoding)
+
+
+    Creating clusters in encodings with n_clusters= 115
+
+
+    /ActiveLearning/src/activelearning.py:240: ConvergenceWarning: Number of distinct clusters (46) found smaller than n_clusters (115). Possibly due to duplicate points in X.
       clustering_method.fit(encoding)
 
 
@@ -1154,41 +1261,41 @@ for index_dataset, encoded_dataset in enumerate(encoded_dataset_list):
 ```
 
     Calculating distances
-    2300/2300 [==============================] - 0s 204us/step
+    2300/2300 [==============================] - 0s 187us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 180us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 180us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 181us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 181us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 183us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 182us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 182us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 184us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 181us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 179us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 178us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 179us/step
+    Calculating distances
+    2300/2300 [==============================] - 0s 180us/step
     Calculating distances
     2300/2300 [==============================] - 0s 179us/step
     Calculating distances
     2300/2300 [==============================] - 0s 179us/step
     Calculating distances
-    2300/2300 [==============================] - 0s 176us/step
-    Calculating distances
     2300/2300 [==============================] - 0s 179us/step
     Calculating distances
-    2300/2300 [==============================] - 0s 176us/step
-    Calculating distances
-    2300/2300 [==============================] - 0s 177us/step
-    Calculating distances
-    2300/2300 [==============================] - 0s 190us/step
-    Calculating distances
-    2300/2300 [==============================] - 0s 193us/step
-    Calculating distances
-    2300/2300 [==============================] - 0s 183us/step
-    Calculating distances
-    2300/2300 [==============================] - 0s 183us/step
-    Calculating distances
-    2300/2300 [==============================] - 0s 185us/step
-    Calculating distances
-    2300/2300 [==============================] - 0s 182us/step
-    Calculating distances
-    2300/2300 [==============================] - 0s 182us/step
-    Calculating distances
-    2300/2300 [==============================] - 0s 182us/step
-    Calculating distances
-    2300/2300 [==============================] - 0s 182us/step
-    Calculating distances
-    2300/2300 [==============================] - 0s 183us/step
-    Calculating distances
-    2300/2300 [==============================] - 0s 183us/step
+    2300/2300 [==============================] - 0s 179us/step
 
 
 ### 3.4 Batching algorithm
@@ -1203,27 +1310,24 @@ Note: We plot our random forest baseline prediction losses (dashed red line) to 
 HYPER.set_act_lrn_params()
 
 # create empty lists to add results
-result_list = []
-random_result_list = []
+AL_result_list = []
+PL_result_list = []
 
 # iterate over all prediction types
 for pred_type in HYPER.PRED_LIST_ACT_LRN:
     
     # choose corresponding test data of currently iterated pred_type
     if pred_type=='spatial':
-    
         dataset = dataset_list[0]
         
     if pred_type=='temporal':
-    
         dataset = dataset_list[1]
         
     if pred_type=='spatio-temporal':
-    
         dataset = dataset_list[2]
         
     # create random result for benchmark once only for this pred_type
-    random_result =  activelearning.feature_embedding_AL(
+    PL_result =  activelearning.feature_embedding_AL(
         HYPER, 
         pred_type, 
         models, 
@@ -1232,9 +1336,9 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
         dataset, 
         loss_object, 
         optimizer, 
-        mean_loss, 
+        mean_loss,  
         loss_function,
-        'random', 
+        'PL', 
         silent=False
     )
     
@@ -1251,7 +1355,7 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
         for method in HYPER.QUERY_VARIANTS_ACT_LRN:
 
             # test AL with currently iterated AL variable and variant
-            result =  activelearning.feature_embedding_AL(
+            AL_result =  activelearning.feature_embedding_AL(
                 HYPER, 
                 pred_type, 
                 models, 
@@ -1260,7 +1364,7 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
                 dataset,
                 loss_object, 
                 optimizer, 
-                mean_loss, 
+                mean_loss,  
                 loss_function,
                 method=method, 
                 AL_variable=query_variable, 
@@ -1268,7 +1372,7 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
             )
             
             # test sequence importance for iterated AL variable and variant
-            result = activelearning.test_AL_sequence_importance(
+            AL_result = activelearning.test_AL_sequence_importance(
                 HYPER, 
                 pred_type, 
                 models, 
@@ -1277,45 +1381,45 @@ for pred_type in HYPER.PRED_LIST_ACT_LRN:
                 dataset, 
                 loss_object, 
                 optimizer, 
-                mean_loss, 
+                mean_loss,  
                 loss_function, 
-                result,
+                AL_result,
                 method=method, 
                 AL_variable=query_variable, 
                 silent=False
             )
 
             # add results to method_result_list
-            method_result_list.append(result)
+            method_result_list.append(AL_result)
          
          # add results to var_result_list
         var_result_list.append(method_result_list)
     
     # add results to total result_list and random_result_list
-    result_list.append(var_result_list)
-    random_result_list.append(random_result)
+    AL_result_list.append(var_result_list)
+    PL_result_list.append(PL_result)
     
 # call visualization function for comparing train and validation results
 activelearning.vis_train_and_val(
     HYPER, 
-    result_list, 
-    random_result_list, 
-    baseline_results
+    AL_result_list, 
+    PL_result_list, 
+    RF_results
 )
 
 # call visualization function for comparing losses for random vs AL query sequence
 activelearning.vis_seq_importance(
     HYPER, 
-    result_list
+    AL_result_list
 )
 
 # save active learning results
 activelearning.save_act_lrn_results(
     HYPER, 
     raw_data, 
-    baseline_results, 
-    result_list, 
-    random_result_list
+    RF_results, 
+    AL_result_list, 
+    PL_result_list
 )
 
 # save hyper parameters
@@ -1328,22 +1432,22 @@ activelearning.save_hyper_params(
 activelearning.save_act_lrn_models(
     HYPER, 
     raw_data, 
-    result_list, 
-    random_result_list
+    AL_result_list, 
+    PL_result_list
 )
 
 # save the test data sample
 activelearning.save_act_lrn_test_sample(
     HYPER, 
     raw_data, 
-    result_list, 
-    random_result_list
+    AL_result_list, 
+    PL_result_list
 )
 ```
 
     prediction task:             spatio-temporal
     query variable:              None
-    query variant:               random
+    query variant:               PL
     distance metric:             Laplacian
     clustering method:           KMeans
     data budget:                 1150/2300 (50%)
@@ -1353,42 +1457,42 @@ activelearning.save_act_lrn_test_sample(
     new streaming times to use:  50
     ---------
     Iteration:                            1
-    Time:                                 6s
+    Time:                                 10s
     Trained on candidate batch size:      115
     Used streaming times:                 44/50 (88%)
-    Used sensors:                         41/46 (89%)
+    Used sensors:                         40/46 (87%)
     Used data budget:                     115/1150 (10%)
     ---------
     Iteration:                            2
-    Time:                                 3s
+    Time:                                 5s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         45/46 (98%)
     Used data budget:                     230/1150 (20%)
     ---------
     Iteration:                            3
-    Time:                                 3s
+    Time:                                 5s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         46/46 (100%)
     Used data budget:                     345/1150 (30%)
     ---------
     Iteration:                            4
-    Time:                                 3s
+    Time:                                 5s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         46/46 (100%)
     Used data budget:                     460/1150 (40%)
     ---------
     Iteration:                            5
-    Time:                                 3s
+    Time:                                 4s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         46/46 (100%)
     Used data budget:                     575/1150 (50%)
     ---------
     Iteration:                            6
-    Time:                                 3s
+    Time:                                 4s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         46/46 (100%)
@@ -1402,21 +1506,21 @@ activelearning.save_act_lrn_test_sample(
     Used data budget:                     805/1150 (70%)
     ---------
     Iteration:                            8
-    Time:                                 2s
+    Time:                                 3s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         46/46 (100%)
     Used data budget:                     920/1150 (80%)
     ---------
     Iteration:                            9
-    Time:                                 2s
+    Time:                                 3s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         46/46 (100%)
     Used data budget:                     1035/1150 (90%)
     ---------
     Iteration:                            10
-    Time:                                 2s
+    Time:                                 3s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         46/46 (100%)
@@ -1424,7 +1528,7 @@ activelearning.save_act_lrn_test_sample(
     ------------------------------------------------------------
     prediction task:             spatio-temporal
     query variable:              X_st
-    query variant:               cluster-rnd
+    query variant:               rnd d_c
     distance metric:             Laplacian
     clustering method:           KMeans
     data budget:                 1150/2300 (50%)
@@ -1434,28 +1538,28 @@ activelearning.save_act_lrn_test_sample(
     new streaming times to use:  50
     ---------
     Iteration:                            1
-    Time:                                 6s
+    Time:                                 11s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         38/46 (83%)
+    Used sensors:                         34/46 (74%)
     Used data budget:                     115/1150 (10%)
     ---------
     Iteration:                            2
-    Time:                                 5s
+    Time:                                 8s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         44/46 (96%)
+    Used sensors:                         41/46 (89%)
     Used data budget:                     230/1150 (20%)
     ---------
     Iteration:                            3
-    Time:                                 5s
+    Time:                                 10s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
+    Used sensors:                         45/46 (98%)
     Used data budget:                     345/1150 (30%)
     ---------
     Iteration:                            4
-    Time:                                 5s
+    Time:                                 7s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         46/46 (100%)
@@ -1469,14 +1573,14 @@ activelearning.save_act_lrn_test_sample(
     Used data budget:                     575/1150 (50%)
     ---------
     Iteration:                            6
-    Time:                                 5s
+    Time:                                 6s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         46/46 (100%)
     Used data budget:                     690/1150 (60%)
     ---------
     Iteration:                            7
-    Time:                                 4s
+    Time:                                 5s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         46/46 (100%)
@@ -1490,7 +1594,7 @@ activelearning.save_act_lrn_test_sample(
     Used data budget:                     920/1150 (80%)
     ---------
     Iteration:                            9
-    Time:                                 4s
+    Time:                                 5s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         46/46 (100%)
@@ -1506,12 +1610,12 @@ activelearning.save_act_lrn_test_sample(
     Testing sequence importance for
     prediction type:                      spatio-temporal
     query variable:                       X_st
-    query variant:                        cluster-rnd
-    10/10 [==============================] - 23s 2s/step
+    query variant:                        rnd d_c
+    10/10 [==============================] - 43s 4s/step
     ------------------------------------------------------------
     prediction task:             spatio-temporal
     query variable:              X_st
-    query variant:               cluster-far
+    query variant:               min d_c
     distance metric:             Laplacian
     clustering method:           KMeans
     data budget:                 1150/2300 (50%)
@@ -1521,49 +1625,136 @@ activelearning.save_act_lrn_test_sample(
     new streaming times to use:  50
     ---------
     Iteration:                            1
-    Time:                                 6s
+    Time:                                 12s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         25/46 (54%)
+    Used sensors:                         28/46 (61%)
     Used data budget:                     115/1150 (10%)
     ---------
     Iteration:                            2
-    Time:                                 8s
+    Time:                                 7s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         32/46 (70%)
     Used data budget:                     230/1150 (20%)
     ---------
     Iteration:                            3
-    Time:                                 6s
+    Time:                                 8s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         36/46 (78%)
+    Used sensors:                         40/46 (87%)
     Used data budget:                     345/1150 (30%)
     ---------
     Iteration:                            4
-    Time:                                 5s
+    Time:                                 6s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         38/46 (83%)
+    Used sensors:                         46/46 (100%)
     Used data budget:                     460/1150 (40%)
     ---------
     Iteration:                            5
-    Time:                                 5s
+    Time:                                 7s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         42/46 (91%)
+    Used sensors:                         46/46 (100%)
     Used data budget:                     575/1150 (50%)
     ---------
     Iteration:                            6
-    Time:                                 5s
+    Time:                                 6s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         43/46 (93%)
+    Used sensors:                         46/46 (100%)
     Used data budget:                     690/1150 (60%)
     ---------
     Iteration:                            7
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     805/1150 (70%)
+    ---------
+    Iteration:                            8
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     920/1150 (80%)
+    ---------
+    Iteration:                            9
     Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1035/1150 (90%)
+    ---------
+    Iteration:                            10
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1150/1150 (100%)
+    ------------------------------------------------------------
+    Testing sequence importance for
+    prediction type:                      spatio-temporal
+    query variable:                       X_st
+    query variant:                        min d_c
+    10/10 [==============================] - 40s 4s/step
+    ------------------------------------------------------------
+    prediction task:             spatio-temporal
+    query variable:              X_st
+    query variant:               max d_c
+    distance metric:             Laplacian
+    clustering method:           KMeans
+    data budget:                 1150/2300 (50%)
+    used sensors:                46
+    new sensors to place:        46
+    used streaming times:        44
+    new streaming times to use:  50
+    ---------
+    Iteration:                            1
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         13/46 (28%)
+    Used data budget:                     115/1150 (10%)
+    ---------
+    Iteration:                            2
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         21/46 (46%)
+    Used data budget:                     230/1150 (20%)
+    ---------
+    Iteration:                            3
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         30/46 (65%)
+    Used data budget:                     345/1150 (30%)
+    ---------
+    Iteration:                            4
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         36/46 (78%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         39/46 (85%)
+    Used data budget:                     575/1150 (50%)
+    ---------
+    Iteration:                            6
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         44/46 (96%)
+    Used data budget:                     690/1150 (60%)
+    ---------
+    Iteration:                            7
+    Time:                                 6s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         45/46 (98%)
@@ -1577,7 +1768,94 @@ activelearning.save_act_lrn_test_sample(
     Used data budget:                     920/1150 (80%)
     ---------
     Iteration:                            9
-    Time:                                 4s
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1035/1150 (90%)
+    ---------
+    Iteration:                            10
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1150/1150 (100%)
+    ------------------------------------------------------------
+    Testing sequence importance for
+    prediction type:                      spatio-temporal
+    query variable:                       X_st
+    query variant:                        max d_c
+    10/10 [==============================] - 42s 4s/step
+    ------------------------------------------------------------
+    prediction task:             spatio-temporal
+    query variable:              X_st
+    query variant:               avg d_c
+    distance metric:             Laplacian
+    clustering method:           KMeans
+    data budget:                 1150/2300 (50%)
+    used sensors:                46
+    new sensors to place:        46
+    used streaming times:        44
+    new streaming times to use:  50
+    ---------
+    Iteration:                            1
+    Time:                                 11s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         29/46 (63%)
+    Used data budget:                     115/1150 (10%)
+    ---------
+    Iteration:                            2
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         36/46 (78%)
+    Used data budget:                     230/1150 (20%)
+    ---------
+    Iteration:                            3
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         43/46 (93%)
+    Used data budget:                     345/1150 (30%)
+    ---------
+    Iteration:                            4
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         45/46 (98%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     575/1150 (50%)
+    ---------
+    Iteration:                            6
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     690/1150 (60%)
+    ---------
+    Iteration:                            7
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     805/1150 (70%)
+    ---------
+    Iteration:                            8
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     920/1150 (80%)
+    ---------
+    Iteration:                            9
+    Time:                                 5s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         46/46 (100%)
@@ -1593,12 +1871,12 @@ activelearning.save_act_lrn_test_sample(
     Testing sequence importance for
     prediction type:                      spatio-temporal
     query variable:                       X_st
-    query variant:                        cluster-far
-    10/10 [==============================] - 24s 2s/step
+    query variant:                        avg d_c
+    10/10 [==============================] - 42s 4s/step
     ------------------------------------------------------------
     prediction task:             spatio-temporal
-    query variable:              X_st
-    query variant:               cluster-avg
+    query variable:              X_(t,s)
+    query variant:               rnd d_c
     distance metric:             Laplacian
     clustering method:           KMeans
     data budget:                 1150/2300 (50%)
@@ -1608,693 +1886,780 @@ activelearning.save_act_lrn_test_sample(
     new streaming times to use:  50
     ---------
     Iteration:                            1
+    Time:                                 11s
+    Trained on candidate batch size:      115
+    Used streaming times:                 45/50 (90%)
+    Used sensors:                         40/46 (87%)
+    Used data budget:                     115/1150 (10%)
+    ---------
+    Iteration:                            2
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     230/1150 (20%)
+    ---------
+    Iteration:                            3
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     345/1150 (30%)
+    ---------
+    Iteration:                            4
+    Time:                                 10s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     575/1150 (50%)
+    ---------
+    Iteration:                            6
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     690/1150 (60%)
+    ---------
+    Iteration:                            7
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     805/1150 (70%)
+    ---------
+    Iteration:                            8
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     920/1150 (80%)
+    ---------
+    Iteration:                            9
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1035/1150 (90%)
+    ---------
+    Iteration:                            10
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1150/1150 (100%)
+    ------------------------------------------------------------
+    Testing sequence importance for
+    prediction type:                      spatio-temporal
+    query variable:                       X_(t,s)
+    query variant:                        rnd d_c
+    10/10 [==============================] - 47s 4s/step
+    ------------------------------------------------------------
+    prediction task:             spatio-temporal
+    query variable:              X_(t,s)
+    query variant:               min d_c
+    distance metric:             Laplacian
+    clustering method:           KMeans
+    data budget:                 1150/2300 (50%)
+    used sensors:                46
+    new sensors to place:        46
+    used streaming times:        44
+    new streaming times to use:  50
+    ---------
+    Iteration:                            1
+    Time:                                 10s
+    Trained on candidate batch size:      115
+    Used streaming times:                 47/50 (94%)
+    Used sensors:                         33/46 (72%)
+    Used data budget:                     115/1150 (10%)
+    ---------
+    Iteration:                            2
+    Time:                                 9s
+    Trained on candidate batch size:      115
+    Used streaming times:                 49/50 (98%)
+    Used sensors:                         45/46 (98%)
+    Used data budget:                     230/1150 (20%)
+    ---------
+    Iteration:                            3
+    Time:                                 9s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     345/1150 (30%)
+    ---------
+    Iteration:                            4
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     575/1150 (50%)
+    ---------
+    Iteration:                            6
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     690/1150 (60%)
+    ---------
+    Iteration:                            7
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     805/1150 (70%)
+    ---------
+    Iteration:                            8
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     920/1150 (80%)
+    ---------
+    Iteration:                            9
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1035/1150 (90%)
+    ---------
+    Iteration:                            10
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1150/1150 (100%)
+    ------------------------------------------------------------
+    Testing sequence importance for
+    prediction type:                      spatio-temporal
+    query variable:                       X_(t,s)
+    query variant:                        min d_c
+    10/10 [==============================] - 39s 4s/step
+    ------------------------------------------------------------
+    prediction task:             spatio-temporal
+    query variable:              X_(t,s)
+    query variant:               max d_c
+    distance metric:             Laplacian
+    clustering method:           KMeans
+    data budget:                 1150/2300 (50%)
+    used sensors:                46
+    new sensors to place:        46
+    used streaming times:        44
+    new streaming times to use:  50
+    ---------
+    Iteration:                            1
+    Time:                                 12s
+    Trained on candidate batch size:      115
+    Used streaming times:                 36/50 (72%)
+    Used sensors:                         27/46 (59%)
+    Used data budget:                     115/1150 (10%)
+    ---------
+    Iteration:                            2
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 42/50 (84%)
+    Used sensors:                         39/46 (85%)
+    Used data budget:                     230/1150 (20%)
+    ---------
+    Iteration:                            3
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 43/50 (86%)
+    Used sensors:                         41/46 (89%)
+    Used data budget:                     345/1150 (30%)
+    ---------
+    Iteration:                            4
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 46/50 (92%)
+    Used sensors:                         43/46 (93%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 47/50 (94%)
+    Used sensors:                         44/46 (96%)
+    Used data budget:                     575/1150 (50%)
+    ---------
+    Iteration:                            6
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 49/50 (98%)
+    Used sensors:                         44/46 (96%)
+    Used data budget:                     690/1150 (60%)
+    ---------
+    Iteration:                            7
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     805/1150 (70%)
+    ---------
+    Iteration:                            8
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     920/1150 (80%)
+    ---------
+    Iteration:                            9
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1035/1150 (90%)
+    ---------
+    Iteration:                            10
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1150/1150 (100%)
+    ------------------------------------------------------------
+    Testing sequence importance for
+    prediction type:                      spatio-temporal
+    query variable:                       X_(t,s)
+    query variant:                        max d_c
+    10/10 [==============================] - 41s 4s/step
+    ------------------------------------------------------------
+    prediction task:             spatio-temporal
+    query variable:              X_(t,s)
+    query variant:               avg d_c
+    distance metric:             Laplacian
+    clustering method:           KMeans
+    data budget:                 1150/2300 (50%)
+    used sensors:                46
+    new sensors to place:        46
+    used streaming times:        44
+    new streaming times to use:  50
+    ---------
+    Iteration:                            1
+    Time:                                 11s
+    Trained on candidate batch size:      115
+    Used streaming times:                 42/50 (84%)
+    Used sensors:                         42/46 (91%)
+    Used data budget:                     115/1150 (10%)
+    ---------
+    Iteration:                            2
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 49/50 (98%)
+    Used sensors:                         45/46 (98%)
+    Used data budget:                     230/1150 (20%)
+    ---------
+    Iteration:                            3
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     345/1150 (30%)
+    ---------
+    Iteration:                            4
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     575/1150 (50%)
+    ---------
+    Iteration:                            6
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     690/1150 (60%)
+    ---------
+    Iteration:                            7
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     805/1150 (70%)
+    ---------
+    Iteration:                            8
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     920/1150 (80%)
+    ---------
+    Iteration:                            9
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1035/1150 (90%)
+    ---------
+    Iteration:                            10
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1150/1150 (100%)
+    ------------------------------------------------------------
+    Testing sequence importance for
+    prediction type:                      spatio-temporal
+    query variable:                       X_(t,s)
+    query variant:                        avg d_c
+    10/10 [==============================] - 39s 4s/step
+    ------------------------------------------------------------
+    prediction task:             spatio-temporal
+    query variable:              Y_hat_(t,s)
+    query variant:               rnd d_c
+    distance metric:             Laplacian
+    clustering method:           KMeans
+    data budget:                 1150/2300 (50%)
+    used sensors:                46
+    new sensors to place:        46
+    used streaming times:        44
+    new streaming times to use:  50
+    ---------
+    Iteration:                            1
+    Time:                                 10s
+    Trained on candidate batch size:      115
+    Used streaming times:                 33/50 (66%)
+    Used sensors:                         42/46 (91%)
+    Used data budget:                     115/1150 (10%)
+    ---------
+    Iteration:                            2
+    Time:                                 10s
+    Trained on candidate batch size:      115
+    Used streaming times:                 49/50 (98%)
+    Used sensors:                         44/46 (96%)
+    Used data budget:                     230/1150 (20%)
+    ---------
+    Iteration:                            3
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     345/1150 (30%)
+    ---------
+    Iteration:                            4
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     575/1150 (50%)
+    ---------
+    Iteration:                            6
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     690/1150 (60%)
+    ---------
+    Iteration:                            7
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     805/1150 (70%)
+    ---------
+    Iteration:                            8
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     920/1150 (80%)
+    ---------
+    Iteration:                            9
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1035/1150 (90%)
+    ---------
+    Iteration:                            10
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1150/1150 (100%)
+    ------------------------------------------------------------
+    Testing sequence importance for
+    prediction type:                      spatio-temporal
+    query variable:                       Y_hat_(t,s)
+    query variant:                        rnd d_c
+    10/10 [==============================] - 44s 4s/step
+    ------------------------------------------------------------
+    prediction task:             spatio-temporal
+    query variable:              Y_hat_(t,s)
+    query variant:               min d_c
+    distance metric:             Laplacian
+    clustering method:           KMeans
+    data budget:                 1150/2300 (50%)
+    used sensors:                46
+    new sensors to place:        46
+    used streaming times:        44
+    new streaming times to use:  50
+    ---------
+    Iteration:                            1
+    Time:                                 13s
+    Trained on candidate batch size:      115
+    Used streaming times:                 28/50 (56%)
+    Used sensors:                         42/46 (91%)
+    Used data budget:                     115/1150 (10%)
+    ---------
+    Iteration:                            2
+    Time:                                 9s
+    Trained on candidate batch size:      115
+    Used streaming times:                 48/50 (96%)
+    Used sensors:                         45/46 (98%)
+    Used data budget:                     230/1150 (20%)
+    ---------
+    Iteration:                            3
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         45/46 (98%)
+    Used data budget:                     345/1150 (30%)
+    ---------
+    Iteration:                            4
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         45/46 (98%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     575/1150 (50%)
+    ---------
+    Iteration:                            6
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     690/1150 (60%)
+    ---------
+    Iteration:                            7
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     805/1150 (70%)
+    ---------
+    Iteration:                            8
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     920/1150 (80%)
+    ---------
+    Iteration:                            9
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1035/1150 (90%)
+    ---------
+    Iteration:                            10
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1150/1150 (100%)
+    ------------------------------------------------------------
+    Testing sequence importance for
+    prediction type:                      spatio-temporal
+    query variable:                       Y_hat_(t,s)
+    query variant:                        min d_c
+    10/10 [==============================] - 43s 4s/step
+    ------------------------------------------------------------
+    prediction task:             spatio-temporal
+    query variable:              Y_hat_(t,s)
+    query variant:               max d_c
+    distance metric:             Laplacian
+    clustering method:           KMeans
+    data budget:                 1150/2300 (50%)
+    used sensors:                46
+    new sensors to place:        46
+    used streaming times:        44
+    new streaming times to use:  50
+    ---------
+    Iteration:                            1
+    Time:                                 14s
+    Trained on candidate batch size:      115
+    Used streaming times:                 24/50 (48%)
+    Used sensors:                         40/46 (87%)
+    Used data budget:                     115/1150 (10%)
+    ---------
+    Iteration:                            2
+    Time:                                 10s
+    Trained on candidate batch size:      115
+    Used streaming times:                 45/50 (90%)
+    Used sensors:                         42/46 (91%)
+    Used data budget:                     230/1150 (20%)
+    ---------
+    Iteration:                            3
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         44/46 (96%)
+    Used data budget:                     345/1150 (30%)
+    ---------
+    Iteration:                            4
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         45/46 (98%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     575/1150 (50%)
+    ---------
+    Iteration:                            6
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     690/1150 (60%)
+    ---------
+    Iteration:                            7
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     805/1150 (70%)
+    ---------
+    Iteration:                            8
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     920/1150 (80%)
+    ---------
+    Iteration:                            9
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1035/1150 (90%)
+    ---------
+    Iteration:                            10
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1150/1150 (100%)
+    ------------------------------------------------------------
+    Testing sequence importance for
+    prediction type:                      spatio-temporal
+    query variable:                       Y_hat_(t,s)
+    query variant:                        max d_c
+    10/10 [==============================] - 44s 4s/step
+    ------------------------------------------------------------
+    prediction task:             spatio-temporal
+    query variable:              Y_hat_(t,s)
+    query variant:               avg d_c
+    distance metric:             Laplacian
+    clustering method:           KMeans
+    data budget:                 1150/2300 (50%)
+    used sensors:                46
+    new sensors to place:        46
+    used streaming times:        44
+    new streaming times to use:  50
+    ---------
+    Iteration:                            1
+    Time:                                 11s
+    Trained on candidate batch size:      115
+    Used streaming times:                 29/50 (58%)
+    Used sensors:                         43/46 (93%)
+    Used data budget:                     115/1150 (10%)
+    ---------
+    Iteration:                            2
+    Time:                                 9s
+    Trained on candidate batch size:      115
+    Used streaming times:                 47/50 (94%)
+    Used sensors:                         44/46 (96%)
+    Used data budget:                     230/1150 (20%)
+    ---------
+    Iteration:                            3
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     345/1150 (30%)
+    ---------
+    Iteration:                            4
+    Time:                                 8s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     575/1150 (50%)
+    ---------
+    Iteration:                            6
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     690/1150 (60%)
+    ---------
+    Iteration:                            7
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     805/1150 (70%)
+    ---------
+    Iteration:                            8
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     920/1150 (80%)
+    ---------
+    Iteration:                            9
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1035/1150 (90%)
+    ---------
+    Iteration:                            10
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         46/46 (100%)
+    Used data budget:                     1150/1150 (100%)
+    ------------------------------------------------------------
+    Testing sequence importance for
+    prediction type:                      spatio-temporal
+    query variable:                       Y_hat_(t,s)
+    query variant:                        avg d_c
+    10/10 [==============================] - 43s 4s/step
+    ------------------------------------------------------------
+    prediction task:             spatio-temporal
+    query variable:              Y_(t,s)
+    query variant:               rnd d_c
+    distance metric:             Laplacian
+    clustering method:           KMeans
+    data budget:                 1150/2300 (50%)
+    used sensors:                46
+    new sensors to place:        46
+    used streaming times:        44
+    new streaming times to use:  50
+    ---------
+    Iteration:                            1
+    Time:                                 11s
+    Trained on candidate batch size:      115
+    Used streaming times:                 48/50 (96%)
+    Used sensors:                         17/46 (37%)
+    Used data budget:                     115/1150 (10%)
+    ---------
+    Iteration:                            2
+    Time:                                 12s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         24/46 (52%)
+    Used data budget:                     230/1150 (20%)
+    ---------
+    Iteration:                            3
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         29/46 (63%)
+    Used data budget:                     345/1150 (30%)
+    ---------
+    Iteration:                            4
+    Time:                                 10s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         34/46 (74%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
     Time:                                 6s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         35/46 (76%)
-    Used data budget:                     115/1150 (10%)
-    ---------
-    Iteration:                            2
-    Time:                                 7s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         43/46 (93%)
-    Used data budget:                     230/1150 (20%)
-    ---------
-    Iteration:                            3
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     345/1150 (30%)
-    ---------
-    Iteration:                            4
-    Time:                                 7s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     460/1150 (40%)
-    ---------
-    Iteration:                            5
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
     Used data budget:                     575/1150 (50%)
     ---------
     Iteration:                            6
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     690/1150 (60%)
-    ---------
-    Iteration:                            7
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     805/1150 (70%)
-    ---------
-    Iteration:                            8
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     920/1150 (80%)
-    ---------
-    Iteration:                            9
-    Time:                                 4s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1035/1150 (90%)
-    ---------
-    Iteration:                            10
-    Time:                                 4s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1150/1150 (100%)
-    ------------------------------------------------------------
-    Testing sequence importance for
-    prediction type:                      spatio-temporal
-    query variable:                       X_st
-    query variant:                        cluster-avg
-    10/10 [==============================] - 23s 2s/step
-    ------------------------------------------------------------
-    prediction task:             spatio-temporal
-    query variable:              X_joint
-    query variant:               cluster-rnd
-    distance metric:             Laplacian
-    clustering method:           KMeans
-    data budget:                 1150/2300 (50%)
-    used sensors:                46
-    new sensors to place:        46
-    used streaming times:        44
-    new streaming times to use:  50
-    ---------
-    Iteration:                            1
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 39/50 (78%)
-    Used sensors:                         40/46 (87%)
-    Used data budget:                     115/1150 (10%)
-    ---------
-    Iteration:                            2
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 49/50 (98%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     230/1150 (20%)
-    ---------
-    Iteration:                            3
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 49/50 (98%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     345/1150 (30%)
-    ---------
-    Iteration:                            4
-    Time:                                 7s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     460/1150 (40%)
-    ---------
-    Iteration:                            5
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     575/1150 (50%)
-    ---------
-    Iteration:                            6
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     690/1150 (60%)
-    ---------
-    Iteration:                            7
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     805/1150 (70%)
-    ---------
-    Iteration:                            8
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     920/1150 (80%)
-    ---------
-    Iteration:                            9
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1035/1150 (90%)
-    ---------
-    Iteration:                            10
-    Time:                                 4s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1150/1150 (100%)
-    ------------------------------------------------------------
-    Testing sequence importance for
-    prediction type:                      spatio-temporal
-    query variable:                       X_joint
-    query variant:                        cluster-rnd
-    10/10 [==============================] - 24s 2s/step
-    ------------------------------------------------------------
-    prediction task:             spatio-temporal
-    query variable:              X_joint
-    query variant:               cluster-far
-    distance metric:             Laplacian
-    clustering method:           KMeans
-    data budget:                 1150/2300 (50%)
-    used sensors:                46
-    new sensors to place:        46
-    used streaming times:        44
-    new streaming times to use:  50
-    ---------
-    Iteration:                            1
-    Time:                                 7s
-    Trained on candidate batch size:      115
-    Used streaming times:                 31/50 (62%)
-    Used sensors:                         31/46 (67%)
-    Used data budget:                     115/1150 (10%)
-    ---------
-    Iteration:                            2
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 39/50 (78%)
-    Used sensors:                         36/46 (78%)
-    Used data budget:                     230/1150 (20%)
-    ---------
-    Iteration:                            3
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 42/50 (84%)
-    Used sensors:                         40/46 (87%)
-    Used data budget:                     345/1150 (30%)
-    ---------
-    Iteration:                            4
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 46/50 (92%)
-    Used sensors:                         42/46 (91%)
-    Used data budget:                     460/1150 (40%)
-    ---------
-    Iteration:                            5
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 48/50 (96%)
-    Used sensors:                         45/46 (98%)
-    Used data budget:                     575/1150 (50%)
-    ---------
-    Iteration:                            6
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 48/50 (96%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     690/1150 (60%)
-    ---------
-    Iteration:                            7
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 49/50 (98%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     805/1150 (70%)
-    ---------
-    Iteration:                            8
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     920/1150 (80%)
-    ---------
-    Iteration:                            9
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1035/1150 (90%)
-    ---------
-    Iteration:                            10
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1150/1150 (100%)
-    ------------------------------------------------------------
-    Testing sequence importance for
-    prediction type:                      spatio-temporal
-    query variable:                       X_joint
-    query variant:                        cluster-far
-    10/10 [==============================] - 25s 3s/step
-    ------------------------------------------------------------
-    prediction task:             spatio-temporal
-    query variable:              X_joint
-    query variant:               cluster-avg
-    distance metric:             Laplacian
-    clustering method:           KMeans
-    data budget:                 1150/2300 (50%)
-    used sensors:                46
-    new sensors to place:        46
-    used streaming times:        44
-    new streaming times to use:  50
-    ---------
-    Iteration:                            1
-    Time:                                 7s
-    Trained on candidate batch size:      115
-    Used streaming times:                 39/50 (78%)
-    Used sensors:                         44/46 (96%)
-    Used data budget:                     115/1150 (10%)
-    ---------
-    Iteration:                            2
-    Time:                                 7s
-    Trained on candidate batch size:      115
-    Used streaming times:                 48/50 (96%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     230/1150 (20%)
-    ---------
-    Iteration:                            3
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     345/1150 (30%)
-    ---------
-    Iteration:                            4
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     460/1150 (40%)
-    ---------
-    Iteration:                            5
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     575/1150 (50%)
-    ---------
-    Iteration:                            6
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     690/1150 (60%)
-    ---------
-    Iteration:                            7
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     805/1150 (70%)
-    ---------
-    Iteration:                            8
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     920/1150 (80%)
-    ---------
-    Iteration:                            9
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1035/1150 (90%)
-    ---------
-    Iteration:                            10
-    Time:                                 4s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1150/1150 (100%)
-    ------------------------------------------------------------
-    Testing sequence importance for
-    prediction type:                      spatio-temporal
-    query variable:                       X_joint
-    query variant:                        cluster-avg
-    10/10 [==============================] - 22s 2s/step
-    ------------------------------------------------------------
-    prediction task:             spatio-temporal
-    query variable:              X_(t,s)
-    query variant:               cluster-rnd
-    distance metric:             Laplacian
-    clustering method:           KMeans
-    data budget:                 1150/2300 (50%)
-    used sensors:                46
-    new sensors to place:        46
-    used streaming times:        44
-    new streaming times to use:  50
-    ---------
-    Iteration:                            1
-    Time:                                 7s
-    Trained on candidate batch size:      115
-    Used streaming times:                 35/50 (70%)
-    Used sensors:                         42/46 (91%)
-    Used data budget:                     115/1150 (10%)
-    ---------
-    Iteration:                            2
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 49/50 (98%)
-    Used sensors:                         43/46 (93%)
-    Used data budget:                     230/1150 (20%)
-    ---------
-    Iteration:                            3
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         45/46 (98%)
-    Used data budget:                     345/1150 (30%)
-    ---------
-    Iteration:                            4
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         45/46 (98%)
-    Used data budget:                     460/1150 (40%)
-    ---------
-    Iteration:                            5
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         45/46 (98%)
-    Used data budget:                     575/1150 (50%)
-    ---------
-    Iteration:                            6
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     690/1150 (60%)
-    ---------
-    Iteration:                            7
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     805/1150 (70%)
-    ---------
-    Iteration:                            8
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     920/1150 (80%)
-    ---------
-    Iteration:                            9
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1035/1150 (90%)
-    ---------
-    Iteration:                            10
-    Time:                                 4s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1150/1150 (100%)
-    ------------------------------------------------------------
-    Testing sequence importance for
-    prediction type:                      spatio-temporal
-    query variable:                       X_(t,s)
-    query variant:                        cluster-rnd
-    10/10 [==============================] - 23s 2s/step
-    ------------------------------------------------------------
-    prediction task:             spatio-temporal
-    query variable:              X_(t,s)
-    query variant:               cluster-far
-    distance metric:             Laplacian
-    clustering method:           KMeans
-    data budget:                 1150/2300 (50%)
-    used sensors:                46
-    new sensors to place:        46
-    used streaming times:        44
-    new streaming times to use:  50
-    ---------
-    Iteration:                            1
-    Time:                                 9s
-    Trained on candidate batch size:      115
-    Used streaming times:                 28/50 (56%)
-    Used sensors:                         37/46 (80%)
-    Used data budget:                     115/1150 (10%)
-    ---------
-    Iteration:                            2
-    Time:                                 7s
-    Trained on candidate batch size:      115
-    Used streaming times:                 45/50 (90%)
-    Used sensors:                         40/46 (87%)
-    Used data budget:                     230/1150 (20%)
-    ---------
-    Iteration:                            3
     Time:                                 6s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         40/46 (87%)
-    Used data budget:                     345/1150 (30%)
-    ---------
-    Iteration:                            4
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         42/46 (91%)
-    Used data budget:                     460/1150 (40%)
-    ---------
-    Iteration:                            5
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         44/46 (96%)
-    Used data budget:                     575/1150 (50%)
-    ---------
-    Iteration:                            6
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         44/46 (96%)
     Used data budget:                     690/1150 (60%)
     ---------
     Iteration:                            7
-    Time:                                 6s
+    Time:                                 5s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         45/46 (98%)
+    Used sensors:                         41/46 (89%)
     Used data budget:                     805/1150 (70%)
     ---------
     Iteration:                            8
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     920/1150 (80%)
-    ---------
-    Iteration:                            9
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1035/1150 (90%)
-    ---------
-    Iteration:                            10
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1150/1150 (100%)
-    ------------------------------------------------------------
-    Testing sequence importance for
-    prediction type:                      spatio-temporal
-    query variable:                       X_(t,s)
-    query variant:                        cluster-far
-    10/10 [==============================] - 25s 3s/step
-    ------------------------------------------------------------
-    prediction task:             spatio-temporal
-    query variable:              X_(t,s)
-    query variant:               cluster-avg
-    distance metric:             Laplacian
-    clustering method:           KMeans
-    data budget:                 1150/2300 (50%)
-    used sensors:                46
-    new sensors to place:        46
-    used streaming times:        44
-    new streaming times to use:  50
-    ---------
-    Iteration:                            1
-    Time:                                 7s
-    Trained on candidate batch size:      115
-    Used streaming times:                 34/50 (68%)
-    Used sensors:                         45/46 (98%)
-    Used data budget:                     115/1150 (10%)
-    ---------
-    Iteration:                            2
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 49/50 (98%)
-    Used sensors:                         45/46 (98%)
-    Used data budget:                     230/1150 (20%)
-    ---------
-    Iteration:                            3
-    Time:                                 7s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         45/46 (98%)
-    Used data budget:                     345/1150 (30%)
-    ---------
-    Iteration:                            4
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     460/1150 (40%)
-    ---------
-    Iteration:                            5
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     575/1150 (50%)
-    ---------
-    Iteration:                            6
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     690/1150 (60%)
-    ---------
-    Iteration:                            7
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     805/1150 (70%)
-    ---------
-    Iteration:                            8
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     920/1150 (80%)
-    ---------
-    Iteration:                            9
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1035/1150 (90%)
-    ---------
-    Iteration:                            10
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
-    Used data budget:                     1150/1150 (100%)
-    ------------------------------------------------------------
-    Testing sequence importance for
-    prediction type:                      spatio-temporal
-    query variable:                       X_(t,s)
-    query variant:                        cluster-avg
-    10/10 [==============================] - 24s 2s/step
-    ------------------------------------------------------------
-    prediction task:             spatio-temporal
-    query variable:              Y_(t,s)
-    query variant:               cluster-rnd
-    distance metric:             Laplacian
-    clustering method:           KMeans
-    data budget:                 1150/2300 (50%)
-    used sensors:                46
-    new sensors to place:        46
-    used streaming times:        44
-    new streaming times to use:  50
-    ---------
-    Iteration:                            1
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 48/50 (96%)
-    Used sensors:                         21/46 (46%)
-    Used data budget:                     115/1150 (10%)
-    ---------
-    Iteration:                            2
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         27/46 (59%)
-    Used data budget:                     230/1150 (20%)
-    ---------
-    Iteration:                            3
-    Time:                                 7s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         33/46 (72%)
-    Used data budget:                     345/1150 (30%)
-    ---------
-    Iteration:                            4
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         38/46 (83%)
-    Used data budget:                     460/1150 (40%)
-    ---------
-    Iteration:                            5
     Time:                                 6s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         43/46 (93%)
-    Used data budget:                     575/1150 (50%)
-    ---------
-    Iteration:                            6
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         45/46 (98%)
-    Used data budget:                     690/1150 (60%)
-    ---------
-    Iteration:                            7
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         45/46 (98%)
-    Used data budget:                     805/1150 (70%)
-    ---------
-    Iteration:                            8
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
     Used data budget:                     920/1150 (80%)
     ---------
     Iteration:                            9
     Time:                                 5s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
+    Used sensors:                         45/46 (98%)
     Used data budget:                     1035/1150 (90%)
     ---------
     Iteration:                            10
-    Time:                                 4s
+    Time:                                 6s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         46/46 (100%)
+    Used sensors:                         45/46 (98%)
     Used data budget:                     1150/1150 (100%)
     ------------------------------------------------------------
     Testing sequence importance for
     prediction type:                      spatio-temporal
     query variable:                       Y_(t,s)
-    query variant:                        cluster-rnd
-    10/10 [==============================] - 22s 2s/step
+    query variant:                        rnd d_c
+    10/10 [==============================] - 46s 5s/step
     ------------------------------------------------------------
     prediction task:             spatio-temporal
     query variable:              Y_(t,s)
-    query variant:               cluster-far
+    query variant:               min d_c
     distance metric:             Laplacian
     clustering method:           KMeans
     data budget:                 1150/2300 (50%)
@@ -2304,59 +2669,146 @@ activelearning.save_act_lrn_test_sample(
     new streaming times to use:  50
     ---------
     Iteration:                            1
-    Time:                                 8s
+    Time:                                 14s
     Trained on candidate batch size:      115
-    Used streaming times:                 47/50 (94%)
-    Used sensors:                         13/46 (28%)
+    Used streaming times:                 45/50 (90%)
+    Used sensors:                         15/46 (33%)
     Used data budget:                     115/1150 (10%)
     ---------
     Iteration:                            2
-    Time:                                 8s
+    Time:                                 13s
     Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         17/46 (37%)
+    Used streaming times:                 49/50 (98%)
+    Used sensors:                         16/46 (35%)
     Used data budget:                     230/1150 (20%)
     ---------
     Iteration:                            3
-    Time:                                 6s
+    Time:                                 8s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         23/46 (50%)
+    Used sensors:                         27/46 (59%)
     Used data budget:                     345/1150 (30%)
     ---------
     Iteration:                            4
-    Time:                                 5s
+    Time:                                 7s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         25/46 (54%)
+    Used sensors:                         30/46 (65%)
     Used data budget:                     460/1150 (40%)
     ---------
     Iteration:                            5
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         35/46 (76%)
+    Used data budget:                     575/1150 (50%)
+    ---------
+    Iteration:                            6
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         40/46 (87%)
+    Used data budget:                     690/1150 (60%)
+    ---------
+    Iteration:                            7
     Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         42/46 (91%)
+    Used data budget:                     805/1150 (70%)
+    ---------
+    Iteration:                            8
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         42/46 (91%)
+    Used data budget:                     920/1150 (80%)
+    ---------
+    Iteration:                            9
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         42/46 (91%)
+    Used data budget:                     1035/1150 (90%)
+    ---------
+    Iteration:                            10
+    Time:                                 5s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         43/46 (93%)
+    Used data budget:                     1150/1150 (100%)
+    ------------------------------------------------------------
+    Testing sequence importance for
+    prediction type:                      spatio-temporal
+    query variable:                       Y_(t,s)
+    query variant:                        min d_c
+    10/10 [==============================] - 43s 4s/step
+    ------------------------------------------------------------
+    prediction task:             spatio-temporal
+    query variable:              Y_(t,s)
+    query variant:               max d_c
+    distance metric:             Laplacian
+    clustering method:           KMeans
+    data budget:                 1150/2300 (50%)
+    used sensors:                46
+    new sensors to place:        46
+    used streaming times:        44
+    new streaming times to use:  50
+    ---------
+    Iteration:                            1
+    Time:                                 10s
+    Trained on candidate batch size:      115
+    Used streaming times:                 47/50 (94%)
+    Used sensors:                         9/46 (20%)
+    Used data budget:                     115/1150 (10%)
+    ---------
+    Iteration:                            2
+    Time:                                 9s
+    Trained on candidate batch size:      115
+    Used streaming times:                 49/50 (98%)
+    Used sensors:                         14/46 (30%)
+    Used data budget:                     230/1150 (20%)
+    ---------
+    Iteration:                            3
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         19/46 (41%)
+    Used data budget:                     345/1150 (30%)
+    ---------
+    Iteration:                            4
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         26/46 (57%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
+    Time:                                 8s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         28/46 (61%)
     Used data budget:                     575/1150 (50%)
     ---------
     Iteration:                            6
-    Time:                                 5s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         31/46 (67%)
-    Used data budget:                     690/1150 (60%)
-    ---------
-    Iteration:                            7
-    Time:                                 5s
+    Time:                                 7s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         33/46 (72%)
+    Used data budget:                     690/1150 (60%)
+    ---------
+    Iteration:                            7
+    Time:                                 6s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         36/46 (78%)
     Used data budget:                     805/1150 (70%)
     ---------
     Iteration:                            8
     Time:                                 5s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         36/46 (78%)
+    Used sensors:                         37/46 (80%)
     Used data budget:                     920/1150 (80%)
     ---------
     Iteration:                            9
@@ -2367,21 +2819,21 @@ activelearning.save_act_lrn_test_sample(
     Used data budget:                     1035/1150 (90%)
     ---------
     Iteration:                            10
-    Time:                                 4s
+    Time:                                 5s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         39/46 (85%)
+    Used sensors:                         40/46 (87%)
     Used data budget:                     1150/1150 (100%)
     ------------------------------------------------------------
     Testing sequence importance for
     prediction type:                      spatio-temporal
     query variable:                       Y_(t,s)
-    query variant:                        cluster-far
-    10/10 [==============================] - 22s 2s/step
+    query variant:                        max d_c
+    10/10 [==============================] - 42s 4s/step
     ------------------------------------------------------------
     prediction task:             spatio-temporal
     query variable:              Y_(t,s)
-    query variant:               cluster-avg
+    query variant:               avg d_c
     distance metric:             Laplacian
     clustering method:           KMeans
     data budget:                 1150/2300 (50%)
@@ -2391,42 +2843,42 @@ activelearning.save_act_lrn_test_sample(
     new streaming times to use:  50
     ---------
     Iteration:                            1
-    Time:                                 6s
+    Time:                                 11s
     Trained on candidate batch size:      115
-    Used streaming times:                 48/50 (96%)
-    Used sensors:                         16/46 (35%)
+    Used streaming times:                 46/50 (92%)
+    Used sensors:                         17/46 (37%)
     Used data budget:                     115/1150 (10%)
     ---------
     Iteration:                            2
-    Time:                                 8s
+    Time:                                 10s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         27/46 (59%)
+    Used sensors:                         23/46 (50%)
     Used data budget:                     230/1150 (20%)
     ---------
     Iteration:                            3
-    Time:                                 8s
+    Time:                                 10s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         31/46 (67%)
     Used data budget:                     345/1150 (30%)
     ---------
     Iteration:                            4
-    Time:                                 6s
-    Trained on candidate batch size:      115
-    Used streaming times:                 50/50 (100%)
-    Used sensors:                         36/46 (78%)
-    Used data budget:                     460/1150 (40%)
-    ---------
-    Iteration:                            5
-    Time:                                 6s
+    Time:                                 8s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         38/46 (83%)
+    Used data budget:                     460/1150 (40%)
+    ---------
+    Iteration:                            5
+    Time:                                 7s
+    Trained on candidate batch size:      115
+    Used streaming times:                 50/50 (100%)
+    Used sensors:                         40/46 (87%)
     Used data budget:                     575/1150 (50%)
     ---------
     Iteration:                            6
-    Time:                                 5s
+    Time:                                 7s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
     Used sensors:                         42/46 (91%)
@@ -2440,38 +2892,59 @@ activelearning.save_act_lrn_test_sample(
     Used data budget:                     805/1150 (70%)
     ---------
     Iteration:                            8
-    Time:                                 5s
+    Time:                                 6s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         44/46 (96%)
+    Used sensors:                         46/46 (100%)
     Used data budget:                     920/1150 (80%)
     ---------
     Iteration:                            9
     Time:                                 5s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         44/46 (96%)
+    Used sensors:                         46/46 (100%)
     Used data budget:                     1035/1150 (90%)
     ---------
     Iteration:                            10
-    Time:                                 5s
+    Time:                                 6s
     Trained on candidate batch size:      115
     Used streaming times:                 50/50 (100%)
-    Used sensors:                         44/46 (96%)
+    Used sensors:                         46/46 (100%)
     Used data budget:                     1150/1150 (100%)
     ------------------------------------------------------------
     Testing sequence importance for
     prediction type:                      spatio-temporal
     query variable:                       Y_(t,s)
-    query variant:                        cluster-avg
-    10/10 [==============================] - 22s 2s/step
+    query variant:                        avg d_c
+    10/10 [==============================] - 43s 4s/step
     ------------------------------------------------------------
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
+    WARNING:tensorflow:Compiled the loaded model, but the compiled metrics have yet to be built. `model.compile_metrics` will be empty until you train or evaluate the model.
 
 
 
+    
 ![png](images/markdown/output_39_1.png)
+    
 
 
 
+    
 ![png](images/markdown/output_39_2.png)
+    
 
